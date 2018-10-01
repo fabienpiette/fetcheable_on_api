@@ -39,5 +39,5 @@ module FetcheableOnApi
 end
 
 ActiveSupport.on_load :action_controller do
-  include Fetcheable
+  include FetcheableOnApi
 end
