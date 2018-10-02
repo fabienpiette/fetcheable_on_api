@@ -51,14 +51,16 @@ module FetcheableOnApi
                             .permit(filters_configuration.keys)
                             .to_hash
 
-      filtering = filter_params.map do |column, value|
-        column_name = filters_configuration[column.to_sym].fetch(:as, column)
-        klass       = filters_configuration[column.to_sym].fetch(:class_name, collection.klass)
+      filtering = filter_params.map do |column, values|
+        values.split(',').map do |value|
+          column_name = filters_configuration[column.to_sym].fetch(:as, column)
+          klass       = filters_configuration[column.to_sym].fetch(:class_name, collection.klass)
 
-        klass.arel_table[column_name].matches("%#{value}%")
+          klass.arel_table[column_name].matches("%#{value}%")
+        end.inject(:or)
       end
 
-      collection.where(filtering.inject(:and))
+      collection.where(filtering.flatten.compact.inject(:and))
     end
   end
 end

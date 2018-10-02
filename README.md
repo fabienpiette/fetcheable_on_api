@@ -287,6 +287,28 @@ $ curl -X GET \
 ]
 ```
 
+Multiple filter values can be combined in a comma-separated list.
+
+```bash
+$ curl -X GET \
+  'http://localhost:3000/questions?filter[content]=real,simple'
+
+[
+    {
+        "id": 4,
+        "position": 2,
+        "content": "Is it so simple?",
+        "answer": "Yes"
+    },
+    {
+        "id": 5,
+        "position": 3,
+        "content": "Is this real life?",
+        "answer": "Yes this is real life"
+    }
+]
+```
+
 You can also define a filter through an association like this:
 
 ```ruby
