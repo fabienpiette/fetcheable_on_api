@@ -19,6 +19,13 @@ Or install it yourself as:
 
     $ gem install fetcheable_on_api
 
+Finally, run the install generator:
+
+    $ rails generate fetcheable_on_api:install
+
+It will create the following initializer `config/initializers/fetcheable_on_api.rb`.
+This file contains all the informations about the existing configuration options.
+
 ## Usage
 
 Imagine the following models called question and answer:
