@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'fetcheable_on_api/configuration'
 require 'fetcheable_on_api/filtreable'
 require 'fetcheable_on_api/pagineable'
 require 'fetcheable_on_api/sortable'
@@ -7,6 +8,21 @@ require 'fetcheable_on_api/version'
 require 'active_support'
 
 module FetcheableOnApi
+  #
+  # Configuration
+  #
+  class << self
+    attr_accessor :configuration
+  end
+
+  def self.configuration
+    @configuration ||= Configuration.new
+  end
+
+  def self.configure
+    yield(configuration)
+  end
+
   #
   # Supports
   #
