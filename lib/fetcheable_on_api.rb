@@ -48,9 +48,10 @@ module FetcheableOnApi
   protected
 
   def apply_fetcheable(collection)
+    collection = apply_filters(collection)
     collection = apply_sort(collection)
-    collection = apply_pagination(collection)
-    apply_filters(collection)
+
+    apply_pagination(collection)
   end
 end
 
