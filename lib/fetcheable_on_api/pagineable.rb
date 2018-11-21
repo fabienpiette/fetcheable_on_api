@@ -20,7 +20,7 @@ module FetcheableOnApi
     protected
 
     def apply_pagination(collection)
-      return collection if params[:page].blank?
+      return collection unless params[:page].present? && params[:page].respond_to?(:fetch)
 
       limit = params[:page].fetch(
         :size,
