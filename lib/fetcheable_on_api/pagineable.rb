@@ -39,10 +39,5 @@ module FetcheableOnApi
 
       collection.limit(limit).offset(offset)
     end
-    
-    def valid_parameters?(parameters)
-      parameters.is_a?(ActionController::Parameters) ||
-        parameters.is_a?(Hash)
-    end
   end
 end

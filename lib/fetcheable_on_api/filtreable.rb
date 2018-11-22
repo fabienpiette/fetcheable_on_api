@@ -45,6 +45,9 @@ module FetcheableOnApi
     protected
 
     def apply_filters(collection)
+      return collection unless valid_parameters?(params)
+      return collection unless valid_parameters?(params[:filter])
+
       return collection if params[:filter].blank?
 
       filter_params = params.require(:filter)

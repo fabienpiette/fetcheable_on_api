@@ -53,6 +53,11 @@ module FetcheableOnApi
 
     apply_pagination(collection)
   end
+
+  def valid_parameters?(parameters)
+    parameters.is_a?(ActionController::Parameters) ||
+      parameters.is_a?(Hash)
+  end
 end
 
 ActiveSupport.on_load :action_controller do

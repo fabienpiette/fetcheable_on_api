@@ -48,6 +48,9 @@ module FetcheableOnApi
     protected
 
     def apply_sort(collection)
+      return collection unless valid_parameters?(params)
+      return collection unless valid_parameters?(params[:sort])
+
       return collection if params[:sort].blank?
 
       ordering      = {}
