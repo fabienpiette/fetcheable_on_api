@@ -20,7 +20,9 @@ module FetcheableOnApi
     protected
 
     def apply_pagination(collection)
-      return collection unless params[:page].present? && params[:page].respond_to?(:fetch)
+      return collection unless valid_parameters?(params)
+      return collection unless valid_parameters?(params[:page])
+      return collection unless params[:page].present?
 
       limit = params[:page].fetch(
         :size,
@@ -36,6 +38,11 @@ module FetcheableOnApi
       response.headers['Pagination-Total-Count']  = count
 
       collection.limit(limit).offset(offset)
+    end
+    
+    def valid_parameters?(parameters)
+      parameters.is_a?(ActionController::Parameters) ||
+        parameters.is_a?(Hash)
     end
   end
 end
