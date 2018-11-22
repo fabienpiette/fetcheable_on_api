@@ -253,6 +253,13 @@ $ curl -X GET \
 ]
 ```
 
+When you use pagination, additional information is returned in the Header
+
+- `Pagination-Current-Page`: the current page number
+- `Pagination-Per`: the number of records per page
+- `Pagination-Total-Pages`: the total number of pages
+- `Pagination-Total-Count`: the total number of records
+
 ### Filtering
 
 The `filter` query parameter is reserved for filtering data and the controller must set the attributes allowed to be filtered.
