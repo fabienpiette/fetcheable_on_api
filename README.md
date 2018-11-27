@@ -46,17 +46,23 @@ class Question < ApplicationRecord
           foreign_key: 'question_id',
           dependent: :destroy,
           inverse_of: :question
+
+  belongs_to :category,
+             class_name: 'Category',
+             inverse_of: :questions,
+             optional: true
 end
 
 # == Schema Information
 #
 # Table name: questions
 #
-#  id         :bigint(8)        not null, primary key
-#  content    :text             not null
-#  position   :integer
-#  created_at :datetime         not null
-#  updated_at :datetime         not null
+#  id          :bigint(8)        not null, primary key
+#  content     :text             not null
+#  position    :integer
+#  category_id :bigint(8)
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
 #
 ```
 
@@ -88,6 +94,34 @@ end
 #  updated_at  :datetime         not null
 #
 ```
+
+```ruby
+class Category < ApplicationRecord
+  #
+  # Validations
+  #
+  validates :name,
+            presence: true
+
+  #
+  # Associations
+  #
+  has_many :questions,
+           class_name: 'Question',
+           inverse_of: :category
+end
+
+# == Schema Information
+#
+# Table name: categories
+#
+#  id          :bigint(8)        not null, primary key
+#  name        :text             not null
+#  created_at  :datetime         not null
+#  updated_at  :datetime         not null
+#
+```
+
 And controller:
 
 ```ruby
@@ -128,18 +162,21 @@ $ curl -X GET \
     {
         "id": 3,
         "position": 1,
+        "category_id": 1,
         "content": "How to simply sort a collection with this gem ?",
         "answer": "Just add sort_by in your controller and call the apply_fetcheable method"
     },
     {
         "id": 4,
         "position": 2,
+        "category_id": 2,
         "content": "Is it so simple?",
         "answer": "Yes"
     },
     {
         "id": 5,
         "position": 3,
+        "category_id": 2,
         "content": "Is this real life?",
         "answer": "Yes this is real life"
     }
@@ -170,18 +207,21 @@ $ curl -X GET \
     {
         "id": 3,
         "position": 1,
+        "category_id": 1,
         "content": "How to simply sort a collection with this gem ?",
         "answer": "Just add sort_by in your controller and call the apply_fetcheable method"
     },
     {
         "id": 4,
         "position": 2,
+        "category_id": 2,
         "content": "Is it so simple?",
         "answer": "Yes"
     },
     {
         "id": 5,
         "position": 3,
+        "category_id": 2,
         "content": "Is this real life?",
         "answer": "Yes this is real life"
     }
@@ -198,18 +238,21 @@ $ curl -X GET \
     {
         "id": 5,
         "position": 3,
+        "category_id": 2,
         "content": "Is this real life?",
         "answer": "Yes this is real life"
     },
     {
         "id": 4,
         "position": 2,
+        "category_id": 2,
         "content": "Is it so simple?",
         "answer": "Yes"
     },
     {
         "id": 3,
         "position": 1,
+        "category_id": 1,
         "content": "How to simply sort a collection with this gem ?",
         "answer": "Just add sort_by in your controller and call the apply_fetcheable method"
     }
@@ -229,12 +272,14 @@ $ curl -X GET \
     {
         "id": 3,
         "position": 1,
+        "category_id": 1,
         "content": "How to simply sort a collection with this gem ?",
         "answer": "Just add sort_by in your controller and call the apply_fetcheable method"
     },
     {
         "id": 4,
         "position": 2,
+        "category_id": 2,
         "content": "Is it so simple?",
         "answer": "Yes"
     }
@@ -247,6 +292,7 @@ $ curl -X GET \
     {
         "id": 5,
         "position": 3,
+        "category_id": 2,
         "content": "Is this real life?",
         "answer": "Yes this is real life"
     }
@@ -288,6 +334,7 @@ $ curl -X GET \
     {
         "id": 3,
         "position": 1,
+        "category_id": 1,
         "content": "How to simply sort a collection with this gem ?",
         "answer": "Just add sort_by in your controller and call the apply_fetcheable method"
     }
@@ -304,12 +351,14 @@ $ curl -X GET \
     {
         "id": 4,
         "position": 2,
+        "category_id": 2,
         "content": "Is it so simple?",
         "answer": "Yes"
     },
     {
         "id": 5,
         "position": 3,
+        "category_id": 2,
         "content": "Is this real life?",
         "answer": "Yes this is real life"
     }
@@ -345,11 +394,49 @@ $ curl -X GET \
     {
         "id": 3,
         "position": 1,
+        "category_id": 1,
         "content": "How to simply sort a collection with this gem ?",
         "answer": "Just add sort_by in your controller and call the apply_fetcheable method"
     }
 ]
 ```
+
+Furthermore you can specify one of the supported `Arel` predicate.
+
+```ruby
+class QuestionsController < ActionController::Base
+  #
+  # FetcheableOnApi
+  #
+  filter_by :category_id, with: :eq
+
+  # GET /questions
+  def index
+    questions = apply_fetcheable(Question.includes(:answer).all)
+    render json: questions
+  end
+end
+```
+
+```bash
+$ curl -X GET \
+  'http://localhost:3000/questions?filter[category_id]=1'
+
+[
+    {
+        "id": 3,
+        "position": 1,
+        "category_id": 1,
+        "content": "How to simply sort a collection with this gem ?",
+        "answer": "Just add sort_by in your controller and call the apply_fetcheable method"
+    }
+]
+```
+
+Currently two kind of predicates are supported:
+
++ `:ilike` which is the default behaviour and will match the parameter with the SQL fragment `ILIKE '%foo%'`.
++ `:eq` which matches the parameter with the SQL fragment `= 'foo'`.
 
 And that's all !
 
