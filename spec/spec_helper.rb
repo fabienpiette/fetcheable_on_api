@@ -1,8 +1,18 @@
 require 'bundler/setup'
-require 'fetcheable_on_api'
 require 'active_support'
 
+require 'rails'
+Bundler.require :default, :development
+Combustion.initialize! :active_record, :action_controller, :sprockets
+require 'rspec/rails'
+
+# Dir[Rails.root.join("spec/internal/**/*.rb")].each { |f| puts f;require f }
+# require 'rails-controller-testing'
+# Rails::Controller::Testing.install
+
 RSpec.configure do |config|
+  config.use_transactional_fixtures = true
+
   # Enable flags like --only-failures and --next-failure
   config.example_status_persistence_file_path = '.rspec_status'
 
@@ -13,3 +23,5 @@ RSpec.configure do |config|
     c.syntax = :expect
   end
 end
+
+require 'fetcheable_on_api'

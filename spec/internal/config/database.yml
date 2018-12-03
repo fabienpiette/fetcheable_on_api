@@ -1,0 +1,10 @@
+test:
+  adapter: postgresql
+  encoding: unicode
+  database: foa_combustion_test
+  pool: <%= ENV.fetch("RAILS_MAX_THREADS") { 10 } %>
+  username: <%= ENV['POSTGRESQL_USERNAME'] || '' %>
+  password: <%= ENV['POSTGRESQL_PASSWORD'] || '' %>
+  statement_timeout: 250
+  connect_timeout: 1
+  checkout_timeout: 1
