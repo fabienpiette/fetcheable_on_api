@@ -8,8 +8,6 @@ require 'fetcheable_on_api/version'
 require 'active_support'
 
 module FetcheableOnApi
-  ArgumentError = Class.new(ArgumentError)
-
   #
   # Configuration
   #
@@ -28,6 +26,7 @@ module FetcheableOnApi
   #
   # Supports
   #
+  ArgumentError = Class.new(ArgumentError)
 
   #
   # Public class methods
