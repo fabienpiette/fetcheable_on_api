@@ -8,6 +8,8 @@ require 'fetcheable_on_api/version'
 require 'active_support'
 
 module FetcheableOnApi
+  ArgumentError = Class.new(ArgumentError)
+
   #
   # Configuration
   #
@@ -55,7 +57,7 @@ module FetcheableOnApi
   end
 
   def valid_parameters!(*keys, permitted_types: default_permitted_types)
-    raise ArgumentError.new(
+    raise FetcheableOnApi::ArgumentError.new(
       "Incorrect type #{params.dig(*keys).class} for params #{keys}"
     ) unless valid_params_types(*keys, permitted_types: permitted_types)
   end
