@@ -71,8 +71,6 @@ module FetcheableOnApi
           klass       = filters_configuration[column.to_sym].fetch(:class_name, collection.klass)
           predicate   = filters_configuration[column.to_sym].fetch(:with, :ilike)
 
-          puts "---- #{value} #{value.class}"
-
           case predicate
           when :between
             klass.arel_table[column_name].between(value.first..value.last)
@@ -141,7 +139,9 @@ module FetcheableOnApi
           when :not_in_any
             klass.arel_table[column_name].not_in_any(value)
           else
-            raise ArgumentError, "unsupported predicate `#{predicate}`"
+            raise ArgumentError, "unsupported predicate `#{predicate}`" unless predicate.respond_to?(:call)
+
+            predicate.call(collection, value)
           end
         end.inject(:or)
       end
