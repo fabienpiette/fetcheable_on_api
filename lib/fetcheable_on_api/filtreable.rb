@@ -71,6 +71,8 @@ module FetcheableOnApi
           klass       = filters_configuration[column.to_sym].fetch(:class_name, collection.klass)
           predicate   = filters_configuration[column.to_sym].fetch(:with, :ilike)
 
+          puts "---- #{value} #{value.class}"
+
           case predicate
           when :between
             klass.arel_table[column_name].between(value.first..value.last)
@@ -116,8 +118,10 @@ module FetcheableOnApi
             klass.arel_table[column_name].lteq_all(value)
           when :lteq_any
             klass.arel_table[column_name].lteq_any(value)
-          when :matches, :ilike
+          when :ilike
             klass.arel_table[column_name].matches("%#{value}%")
+          when :matches
+            klass.arel_table[column_name].matches(value)
           when :matches_all
             klass.arel_table[column_name].matches_all(value)
           when :matches_any

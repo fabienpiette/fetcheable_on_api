@@ -433,10 +433,122 @@ $ curl -X GET \
 ]
 ```
 
-Currently two kind of predicates are supported:
+Currently 33 predicates are supported ([more details here](https://github.com/fabienpiette/fetcheable_on_api/wiki/Predicates)):
 
-+ `:ilike` which is the default behaviour and will match the parameter with the SQL fragment `ILIKE '%foo%'`.
++ `:between`
++ `:does_not_match`
++ `:does_not_match_all`
++ `:does_not_match_any`
 + `:eq` which matches the parameter with the SQL fragment `= 'foo'`.
++ `:eq_all`
++ `:eq_any`
++ `:gt`
++ `:gt_all`
++ `:gt_any`
++ `:gteq`
++ `:gteq_all`
++ `:gteq_any`
++ `:ilike` which is the default behaviour and will match the parameter with the SQL fragment `ILIKE '%foo%'`.
++ `:in`
++ `:in_all`
++ `:in_any`
++ `:lt`
++ `:lt_all`
++ `:lt_any`
++ `:lteq`
++ `:lteq_all`
++ `:lteq_any`
++ `:matches`
++ `:matches_all`
++ `:matches_any`
++ `:not_between`
++ `:not_eq`
++ `:not_eq_all`
++ `:not_eq_any`
++ `:not_in`
++ `:not_in_all`
++ `:not_in_any`
+
+You can also use an array as a parameter for some predicate
+
+```ruby
+class QuestionsController < ActionController::Base
+  #
+  # FetcheableOnApi
+  #
+  filter_by :id, with: :between
+
+  # GET /questions
+  def index
+    questions = apply_fetcheable(Question.includes(:answer).all)
+    render json: questions
+  end
+end
+```
+
+```bash
+curl -X GET \
+  'http://localhost:3000/questions?filter[id]=[1]'
+
+[
+    {
+        "id": 1,
+        "position": 1,
+        "content": "Je peux boire ou cuisiner avec l'eau de pluie ?",
+        "answer": "Faux : l'eau de pluie que vous récupérez est strictement interdite pour une consommation alimentaire car elle n'est pas potable.\nVous ne devez donc pas la boire, ni l'utiliser pour cuisiner ou laver la vaisselle.\n",
+        "base_value": false
+    }
+]
+```
+
+Date manipulation is a special case and can be solved by specifically indicating the expected format for the parameter.
+
+```ruby
+class QuestionsController < ActionController::Base
+  #
+  # FetcheableOnApi
+  #
+  filter_by :created_at,
+            with: :between,
+            format: :datetime
+
+  # GET /questions
+  def index
+    questions = apply_fetcheable(Question.includes(:answer).all)
+    render json: questions
+  end
+end
+```
+
+```bash
+curl -X GET \
+  'http://localhost:3000/questions?filter[created_at]=[1541428932,1541428933]'
+```
+
+By default the format used is epoch time, but you can redefine it by overriding the method `foa_string_to_datetime`
+
+```ruby
+class QuestionsController < ActionController::Base
+  #
+  # FetcheableOnApi
+  #
+  filter_by :created_at,
+            with: :between,
+            format: :datetime
+
+  # GET /questions
+  def index
+    questions = apply_fetcheable(Question.includes(:answer).all)
+    render json: questions
+  end
+
+  protected
+
+  def foa_string_to_datetime(string)
+    DateTime.strptime(string, '%s')
+  end
+end
+
 
 And that's all !
 
