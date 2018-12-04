@@ -10,6 +10,6 @@ group :test do
   gem 'activerecord', '~> 5.0'
   gem 'actionpack', '~> 5.0' # action_controller, action_view
   gem 'sprockets'
+  gem 'actionmailer'
   # gem 'activemodel'
-  # gem 'actionmailer'
 end

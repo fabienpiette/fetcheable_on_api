@@ -3,10 +3,9 @@ require 'active_support'
 
 require 'rails'
 Bundler.require :default, :development
-Combustion.initialize! :active_record, :action_controller, :sprockets
+Combustion.initialize! :all # active_record, :action_controller, :sprockets
 require 'rspec/rails'
 
-# Dir[Rails.root.join("spec/internal/**/*.rb")].each { |f| puts f;require f }
 # require 'rails-controller-testing'
 # Rails::Controller::Testing.install
 
