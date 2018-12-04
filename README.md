@@ -469,6 +469,15 @@ Currently 33 predicates are supported ([more details here](https://github.com/fa
 + `:not_in_all`
 + `:not_in_any`
 
++ `lamdba` wich take two arguments: a collection and a value, then return an Arel predicate.
+  ```ruby
+  filter_by :name, with: -> (collection, value) do
+    collection.arel_table[:first_name].matches("%#{value}%").or(
+      collection.arel_table[:last_name].matches("%#{value}%"),
+    )
+  end
+  ```
+
 You can also use an array as a parameter for some predicate
 
 ```ruby
