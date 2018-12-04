@@ -433,10 +433,18 @@ $ curl -X GET \
 ]
 ```
 
-Currently two kind of predicates are supported:
+Currently three kind of predicates are supported:
 
 + `:ilike` which is the default behaviour and will match the parameter with the SQL fragment `ILIKE '%foo%'`.
 + `:eq` which matches the parameter with the SQL fragment `= 'foo'`.
++ `lamdba` wich take two arguments: a collection and a value, then return an Arel predicate.
+  ```ruby
+  filter_by :name, with: -> (collection, value) do
+    collection.arel_table[:first_name].matches("%#{value}%").or(
+      collection.arel_table[:last_name].matches("%#{value}%"),
+    )
+  end
+  ```
 
 And that's all !
 
