@@ -6,6 +6,7 @@ require 'fetcheable_on_api/pagineable'
 require 'fetcheable_on_api/sortable'
 require 'fetcheable_on_api/version'
 require 'active_support'
+require 'date'
 
 module FetcheableOnApi
   #
@@ -26,7 +27,8 @@ module FetcheableOnApi
   #
   # Supports
   #
-  ArgumentError = Class.new(ArgumentError)
+  ArgumentError       = Class.new(ArgumentError)
+  NotImplementedError = Class.new(NotImplementedError)
 
   #
   # Public class methods
@@ -55,24 +57,28 @@ module FetcheableOnApi
     apply_pagination(collection)
   end
 
-  def valid_parameters!(*keys, permitted_types: default_permitted_types)
+  def foa_valid_parameters!(*keys, foa_permitted_types: foa_default_permitted_types)
     raise FetcheableOnApi::ArgumentError.new(
       "Incorrect type #{params.dig(*keys).class} for params #{keys}"
-    ) unless valid_params_types(*keys, permitted_types: permitted_types)
+    ) unless foa_valid_params_types(*keys, foa_permitted_types: foa_permitted_types)
   end
 
-  def valid_params_types(*keys, permitted_types: default_permitted_types)
-    permitted_types.inject(false) do |res, type|
-      res || valid_params_type(params.dig(*keys), type)
+  def foa_valid_params_types(*keys, foa_permitted_types: foa_default_permitted_types)
+    foa_permitted_types.inject(false) do |res, type|
+      res || foa_valid_params_type(params.dig(*keys), type)
     end
   end
 
-  def valid_params_type(value, type)
+  def foa_valid_params_type(value, type)
     value.is_a?(type)
   end
 
-  def default_permitted_types
+  def foa_default_permitted_types
     [ActionController::Parameters, Hash]
+  end
+
+  def foa_string_to_datetime(string)
+    DateTime.strptime(string, '%s')
   end
 end
 

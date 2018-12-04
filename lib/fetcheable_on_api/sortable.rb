@@ -49,7 +49,7 @@ module FetcheableOnApi
 
     def apply_sort(collection)
       return collection if params[:sort].blank?
-      valid_parameters!(:sort, permitted_types: [String])
+      foa_valid_parameters!(:sort, permitted_types: [String])
 
       ordering      = {}
       sorted_params = params[:sort].split(',')

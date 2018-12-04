@@ -21,7 +21,7 @@ module FetcheableOnApi
 
     def apply_pagination(collection)
       return collection if params[:page].blank?
-      valid_parameters!(:page)
+      foa_valid_parameters!(:page)
 
       limit = params[:page].fetch(
         :size,
