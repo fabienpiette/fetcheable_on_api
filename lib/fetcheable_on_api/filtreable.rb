@@ -64,7 +64,9 @@ module FetcheableOnApi
           when :eq
             klass.arel_table[column_name].eq(value)
           else
-            raise ArgumentError, "unsupported predicate `#{predicate}`"
+            raise ArgumentError, "unsupported predicate `#{predicate}`" unless predicate.respond_to?(:call)
+
+            predicate.call(collection, value)
           end
         end.inject(:or)
       end
