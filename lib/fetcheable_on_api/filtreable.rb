@@ -76,7 +76,7 @@ module FetcheableOnApi
     # end
 
     def convert_to_datetime(array)
-      array.map { |el| foa_string_to_datetime(el.to_s) } # if format == :datetime
+      array.map { |el| foa_string_to_datetime(el.to_s) }
     end
 
     def valid_keys
@@ -105,10 +105,11 @@ module FetcheableOnApi
         predicate   = filters_configuration[column.to_sym].fetch(:with, :ilike)
 
         if values.is_a?(String)
-          values.split(',') .map do |value|
+          values.split(',').map do |value|
             predicates(predicate, collection, klass, column_name, value)
           end.inject(:or)
         else
+          values.map! { |el| el.split(',') }
           predicates(predicate, collection, klass, column_name, values)
         end
       end
