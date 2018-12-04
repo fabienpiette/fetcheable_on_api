@@ -557,7 +557,7 @@ class QuestionsController < ActionController::Base
     DateTime.strptime(string, '%s')
   end
 end
-
+```
 
 And that's all !
 
