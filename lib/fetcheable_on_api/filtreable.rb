@@ -82,9 +82,10 @@ module FetcheableOnApi
     def valid_keys
       keys = filters_configuration.keys
       keys.each_with_index do |key, index|
-        predicate = filters_configuration[key.to_sym].fetch(:with, :ilike).to_sym
+        predicate = filters_configuration[key.to_sym].fetch(:with, :ilike)
+        next if predicate.respond_to?(:call) || PREDICATES_WITH_ARRAY.exclude?(predicate.to_sym)
 
-        keys[index] = { key => [] } if PREDICATES_WITH_ARRAY.include?(predicate)
+        keys[index] = { key => [] }
       end
 
       keys
