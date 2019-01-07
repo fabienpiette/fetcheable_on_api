@@ -51,23 +51,28 @@ module FetcheableOnApi
       return collection if params[:sort].blank?
       foa_valid_parameters!(:sort, foa_permitted_types: [String])
 
-      ordering      = {}
-      sorted_params = params[:sort].split(',')
+      ordering = []
 
-      sorted_params.each do |attr|
+      clean_params(params[:sort]).each do |attr|
+        klass = sorts_configuration[attr.to_sym].fetch(:class_name, collection.klass)
+        field = sorts_configuration[attr.to_sym].fetch(:as, attr.to_sym)
+        next unless klass.attribute_names.include?(field)
+
         sort_sign = (attr =~ /\A[+-]/) ? attr.slice!(0) : '+'
-        klass     = collection.klass
-
-        if klass.attribute_names.include?(attr)
-          ordering[attr] = SORT_ORDER[sort_sign]
-        end
-      end
-
-      ordering.select! do |attr|
-        sorts_configuration.key?(attr.to_sym)
+        ordering << klass
+                      .arel_table[field.to_sym]
+                      .send(SORT_ORDER[sort_sign])
       end
 
       collection.order(ordering)
+    end
+
+    private
+
+    def clean_params(params)
+      params
+        .split(',')
+        .select { |e| sorts_configuration.keys.map(&:to_s).include?(e) }
     end
   end
 end
