@@ -8,7 +8,7 @@ module FetcheableOnApi
     SORT_ORDER = {
       '+' => :asc,
       '-' => :desc
-    }
+    }.freeze
 
     #
     # Public class methods
@@ -16,7 +16,7 @@ module FetcheableOnApi
     def self.included(base)
       base.class_eval do
         extend ClassMethods
-        class_attribute :sorts_configuration, :instance_writer => false
+        class_attribute :sorts_configuration, instance_writer: false
         self.sorts_configuration = {}
       end
     end
@@ -33,7 +33,7 @@ module FetcheableOnApi
             as: attr
           }
 
-          sorts_configuration[attr] = self.sorts_configuration[attr].merge(options)
+          sorts_configuration[attr] = sorts_configuration[attr].merge(options)
         end
       end
     end
@@ -73,6 +73,7 @@ module FetcheableOnApi
     # return: { email: :desc, first_name: :asc }
     def format_params(params)
       res = {}
+
       params
         .split(',')
         .each do |attr|

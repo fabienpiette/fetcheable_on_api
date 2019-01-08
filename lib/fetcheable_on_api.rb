@@ -57,13 +57,21 @@ module FetcheableOnApi
     apply_pagination(collection)
   end
 
-  def foa_valid_parameters!(*keys, foa_permitted_types: foa_default_permitted_types)
-    raise FetcheableOnApi::ArgumentError.new(
-      "Incorrect type #{params.dig(*keys).class} for params #{keys}"
-    ) unless foa_valid_params_types(*keys, foa_permitted_types: foa_permitted_types)
+  def foa_valid_parameters!(
+    *keys, foa_permitted_types: foa_default_permitted_types
+  )
+    return if foa_valid_params_types(
+      *keys,
+      foa_permitted_types: foa_permitted_types
+    )
+
+    raise FetcheableOnApi::ArgumentError,
+          "Incorrect type #{params.dig(*keys).class} for params #{keys}"
   end
 
-  def foa_valid_params_types(*keys, foa_permitted_types: foa_default_permitted_types)
+  def foa_valid_params_types(
+    *keys, foa_permitted_types: foa_default_permitted_types
+  )
     foa_permitted_types.inject(false) do |res, type|
       res || foa_valid_params_type(params.dig(*keys), type)
     end
