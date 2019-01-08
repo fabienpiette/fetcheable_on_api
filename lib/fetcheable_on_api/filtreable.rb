@@ -5,27 +5,27 @@ module FetcheableOnApi
     #
     # Supports
     #
-    PREDICATES_WITH_ARRAY = [
-      :does_not_match_all,
-      :does_not_match_any,
-      :eq_all,
-      :eq_any,
-      :gt_all,
-      :gt_any,
-      :gteq_all,
-      :gteq_any,
-      :in_all,
-      :in_any,
-      :lt_all,
-      :lt_any,
-      :lteq_all,
-      :lteq_any,
-      :matches_all,
-      :matches_any,
-      :not_eq_all,
-      :not_eq_any,
-      :not_in_all,
-      :not_in_any
+    PREDICATES_WITH_ARRAY = %i[
+      does_not_match_all
+      does_not_match_any
+      eq_all
+      eq_any
+      gt_all
+      gt_any
+      gteq_all
+      gteq_any
+      in_all
+      in_any
+      lt_all
+      lt_any
+      lteq_all
+      lteq_any
+      matches_all
+      matches_any
+      not_eq_all
+      not_eq_any
+      not_in_all
+      not_in_any
     ].freeze
 
     #
@@ -93,6 +93,7 @@ module FetcheableOnApi
 
     def apply_filters(collection)
       return collection if params[:filter].blank?
+
       foa_valid_parameters!(:filter)
 
       filter_params = params.require(:filter)

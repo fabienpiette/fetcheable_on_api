@@ -8,7 +8,7 @@ module FetcheableOnApi
     SORT_ORDER = {
       '+' => :asc,
       '-' => :desc
-    }
+    }.freeze
 
     #
     # Public class methods
@@ -16,7 +16,7 @@ module FetcheableOnApi
     def self.included(base)
       base.class_eval do
         extend ClassMethods
-        class_attribute :sorts_configuration, :instance_writer => false
+        class_attribute :sorts_configuration, instance_writer: false
         self.sorts_configuration = {}
       end
     end
@@ -33,7 +33,7 @@ module FetcheableOnApi
             as: attr
           }
 
-          sorts_configuration[attr] = self.sorts_configuration[attr].merge(options)
+          sorts_configuration[attr] = sorts_configuration[attr].merge(options)
         end
       end
     end
@@ -49,25 +49,31 @@ module FetcheableOnApi
 
     def apply_sort(collection)
       return collection if params[:sort].blank?
+
       foa_valid_parameters!(:sort, foa_permitted_types: [String])
 
-      ordering = []
-
-      clean_params(params[:sort]).each do |attr|
-        klass = sorts_configuration[attr.to_sym].fetch(:class_name, collection.klass)
-        field = sorts_configuration[attr.to_sym].fetch(:as, attr.to_sym).to_s
-        next unless klass.attribute_names.include?(field)
-
-        sort_sign = (attr =~ /\A[+-]/) ? attr.slice!(0) : '+'
-        ordering << klass
-                      .arel_table[field]
-                      .send(SORT_ORDER[sort_sign])
+      ordering = clean_params(params[:sort]).map do |attr|
+        arel_sort(collection, attr)
       end
 
       collection.order(ordering)
     end
 
     private
+
+    def arel_sort(collection, attr)
+      conf  = sorts_configuration[attr.to_sym]
+      klass = conf.fetch(:class_name, collection.klass)
+      field = conf.fetch(:as, attr).to_s
+
+      return unless klass.attribute_names.include?(field)
+
+      klass.arel_table[field].send(SORT_ORDER[sort_sign_for(attr)])
+    end
+
+    def sort_sign_for(attr)
+      attr =~ /\A[+-]/ ? attr.slice!(0) : '+'
+    end
 
     def clean_params(params)
       params
