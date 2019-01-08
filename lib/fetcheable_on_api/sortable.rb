@@ -55,12 +55,12 @@ module FetcheableOnApi
 
       clean_params(params[:sort]).each do |attr|
         klass = sorts_configuration[attr.to_sym].fetch(:class_name, collection.klass)
-        field = sorts_configuration[attr.to_sym].fetch(:as, attr.to_sym)
+        field = sorts_configuration[attr.to_sym].fetch(:as, attr.to_sym).to_s
         next unless klass.attribute_names.include?(field)
 
         sort_sign = (attr =~ /\A[+-]/) ? attr.slice!(0) : '+'
         ordering << klass
-                      .arel_table[field.to_sym]
+                      .arel_table[field]
                       .send(SORT_ORDER[sort_sign])
       end
 
