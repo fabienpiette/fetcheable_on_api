@@ -54,7 +54,7 @@ module FetcheableOnApi
             as: options[:as] || attr
           }
 
-          filters_configuration[attr] = filters_configuration[attr].merge(options)
+          filters_configuration[attr].merge!(options)
         end
       end
     end
@@ -76,7 +76,8 @@ module FetcheableOnApi
       keys = filters_configuration.keys
       keys.each_with_index do |key, index|
         predicate = filters_configuration[key.to_sym].fetch(:with, :ilike)
-        next if predicate.respond_to?(:call) || PREDICATES_WITH_ARRAY.exclude?(predicate.to_sym)
+        next if predicate.respond_to?(:call) ||
+                PREDICATES_WITH_ARRAY.exclude?(predicate.to_sym)
 
         keys[index] = { key => [] }
       end
