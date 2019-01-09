@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module FetcheableOnApi
+  # Application of a sorting on a collection
   module Sortable
     #
     # Supports
@@ -21,6 +22,7 @@ module FetcheableOnApi
       end
     end
 
+    # Detects url parameters and applies sorting
     module ClassMethods
       def sort_by(*attrs)
         options = attrs.extract_options!

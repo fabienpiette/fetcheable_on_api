@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module FetcheableOnApi
+  # Applying the filter to a collection.
   module Filtreable
     #
     # Supports
@@ -39,6 +40,7 @@ module FetcheableOnApi
       end
     end
 
+    # Detects url parameters and applies the filter
     module ClassMethods
       def filter_by(*attrs)
         options = attrs.extract_options!
@@ -66,18 +68,9 @@ module FetcheableOnApi
     #
     protected
 
-    # def try_parse_array(values, format)
-    #   array = JSON.parse(values)
-    #   array.map! { |el| foa_string_to_datetime(el.to_s) } if format == :datetime
-
-    #   [array]
-    # rescue JSON::ParserError
-    #   nil
+    # def convert_to_datetime(array)
+    #   array.map { |el| foa_string_to_datetime(el.to_s) }
     # end
-
-    def convert_to_datetime(array)
-      array.map { |el| foa_string_to_datetime(el.to_s) }
-    end
 
     def valid_keys
       keys = filters_configuration.keys
@@ -119,6 +112,7 @@ module FetcheableOnApi
       collection.where(filtering.flatten.compact.inject(:and))
     end
 
+    # Apply arel predicate on collection
     def predicates(predicate, collection, klass, column_name, value)
       case predicate
       when :between
@@ -188,12 +182,16 @@ module FetcheableOnApi
       when :not_in_any
         klass.arel_table[column_name].not_in_any(value)
       else
-        raise ArgumentError, "unsupported predicate `#{predicate}`" unless predicate.respond_to?(:call)
+        unless predicate.respond_to?(:call)
+          raise ArgumentError,
+                "unsupported predicate `#{predicate}`"
+        end
 
         predicate.call(collection, value)
       end
     end
 
+    # Types allowed by default for filter action.
     def foa_default_permitted_types
       [ActionController::Parameters, Hash, Array]
     end
