@@ -49,19 +49,19 @@ module FetcheableOnApi
 
     def apply_sort(collection)
       return collection if params[:sort].blank?
+
       foa_valid_parameters!(:sort, foa_permitted_types: [String])
-
       ordering = []
+      format_params(params[:sort]).each do |attr, sort_method|
+        next if sorts_configuration[attr].blank?
 
-      clean_params(params[:sort]).each do |attr|
-        klass = sorts_configuration[attr.to_sym].fetch(:class_name, collection.klass)
-        field = sorts_configuration[attr.to_sym].fetch(:as, attr.to_sym).to_s
+        klass = sorts_configuration[attr].fetch(:class_name, collection.klass)
+        field = sorts_configuration[attr].fetch(:as, attr).to_s
         next unless klass.attribute_names.include?(field)
 
-        sort_sign = (attr =~ /\A[+-]/) ? attr.slice!(0) : '+'
         ordering << klass
-                      .arel_table[field]
-                      .send(SORT_ORDER[sort_sign])
+                    .arel_table[field]
+                    .send(sort_method)
       end
 
       collection.order(ordering)
@@ -69,10 +69,17 @@ module FetcheableOnApi
 
     private
 
-    def clean_params(params)
+    # input: "-email,first_name"
+    # return: { email: :desc, first_name: :asc }
+    def format_params(params)
+      res = {}
       params
         .split(',')
-        .select { |e| sorts_configuration.keys.map(&:to_s).include?(e) }
+        .each do |attr|
+          sort_sign = (attr =~ /\A[+-]/) ? attr.slice!(0) : '+'
+          res[attr.to_sym] = SORT_ORDER[sort_sign]
+        end
+      res
     end
   end
 end
