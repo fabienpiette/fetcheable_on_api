@@ -1,31 +1,32 @@
 # frozen_string_literal: true
 
 module FetcheableOnApi
+  # Applying the filter to a collection.
   module Filtreable
     #
     # Supports
     #
-    PREDICATES_WITH_ARRAY = [
-      :does_not_match_all,
-      :does_not_match_any,
-      :eq_all,
-      :eq_any,
-      :gt_all,
-      :gt_any,
-      :gteq_all,
-      :gteq_any,
-      :in_all,
-      :in_any,
-      :lt_all,
-      :lt_any,
-      :lteq_all,
-      :lteq_any,
-      :matches_all,
-      :matches_any,
-      :not_eq_all,
-      :not_eq_any,
-      :not_in_all,
-      :not_in_any
+    PREDICATES_WITH_ARRAY = %i[
+      does_not_match_all
+      does_not_match_any
+      eq_all
+      eq_any
+      gt_all
+      gt_any
+      gteq_all
+      gteq_any
+      in_all
+      in_any
+      lt_all
+      lt_any
+      lteq_all
+      lteq_any
+      matches_all
+      matches_any
+      not_eq_all
+      not_eq_any
+      not_in_all
+      not_in_any
     ].freeze
 
     #
@@ -39,6 +40,7 @@ module FetcheableOnApi
       end
     end
 
+    # Detects url parameters and applies the filter
     module ClassMethods
       def filter_by(*attrs)
         options = attrs.extract_options!
@@ -52,7 +54,7 @@ module FetcheableOnApi
             as: options[:as] || attr
           }
 
-          filters_configuration[attr] = filters_configuration[attr].merge(options)
+          filters_configuration[attr].merge!(options)
         end
       end
     end
@@ -66,24 +68,16 @@ module FetcheableOnApi
     #
     protected
 
-    # def try_parse_array(values, format)
-    #   array = JSON.parse(values)
-    #   array.map! { |el| foa_string_to_datetime(el.to_s) } if format == :datetime
-
-    #   [array]
-    # rescue JSON::ParserError
-    #   nil
+    # def convert_to_datetime(array)
+    #   array.map { |el| foa_string_to_datetime(el.to_s) }
     # end
-
-    def convert_to_datetime(array)
-      array.map { |el| foa_string_to_datetime(el.to_s) }
-    end
 
     def valid_keys
       keys = filters_configuration.keys
       keys.each_with_index do |key, index|
         predicate = filters_configuration[key.to_sym].fetch(:with, :ilike)
-        next if predicate.respond_to?(:call) || PREDICATES_WITH_ARRAY.exclude?(predicate.to_sym)
+        next if predicate.respond_to?(:call) ||
+                PREDICATES_WITH_ARRAY.exclude?(predicate.to_sym)
 
         keys[index] = { key => [] }
       end
@@ -93,6 +87,7 @@ module FetcheableOnApi
 
     def apply_filters(collection)
       return collection if params[:filter].blank?
+
       foa_valid_parameters!(:filter)
 
       filter_params = params.require(:filter)
@@ -118,6 +113,7 @@ module FetcheableOnApi
       collection.where(filtering.flatten.compact.inject(:and))
     end
 
+    # Apply arel predicate on collection
     def predicates(predicate, collection, klass, column_name, value)
       case predicate
       when :between
@@ -187,12 +183,16 @@ module FetcheableOnApi
       when :not_in_any
         klass.arel_table[column_name].not_in_any(value)
       else
-        raise ArgumentError, "unsupported predicate `#{predicate}`" unless predicate.respond_to?(:call)
+        unless predicate.respond_to?(:call)
+          raise ArgumentError,
+                "unsupported predicate `#{predicate}`"
+        end
 
         predicate.call(collection, value)
       end
     end
 
+    # Types allowed by default for filter action.
     def foa_default_permitted_types
       [ActionController::Parameters, Hash, Array]
     end
