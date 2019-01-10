@@ -91,17 +91,13 @@ module FetcheableOnApi
     #
     def format_params(params)
       res = {}
-
       params
         .split(',')
         .each do |attribute|
-          res[attribute.to_sym] = SORT_ORDER[sort_sign(attribute)]
+          sort_sign = attribute =~ /\A[+-]/ ? attribute.slice!(0) : '+'
+          res[attribute.to_sym] = SORT_ORDER[sort_sign]
         end
       res
-    end
-
-    def sort_sign(attribute)
-      attribute =~ /\A[+-]/ ? attribute.slice!(0) : '+'
     end
   end
 end
