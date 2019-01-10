@@ -55,7 +55,7 @@ module FetcheableOnApi
       foa_valid_parameters!(:sort, foa_permitted_types: [String])
 
       ordering = format_params(params[:sort]).map do |attr_name, sort_method|
-        arel_sort(attr_name, sort_method)
+        arel_sort(attr_name, sort_method, collection)
       end
 
       collection.order(ordering.compact)
@@ -63,7 +63,7 @@ module FetcheableOnApi
 
     private
 
-    def arel_sort(attr_name, sort_method)
+    def arel_sort(attr_name, sort_method, collection)
       return if sorts_configuration[attr_name].blank?
 
       klass = class_for(attr_name, collection)
