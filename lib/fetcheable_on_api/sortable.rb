@@ -7,8 +7,8 @@ module FetcheableOnApi
     # Supports
     #
     SORT_ORDER = {
-      '+' => :asc,
-      '-' => :desc
+      "+" => :asc,
+      "-" => :desc,
     }.freeze
 
     #
@@ -32,7 +32,7 @@ module FetcheableOnApi
 
         attrs.each do |attr|
           sorts_configuration[attr] ||= {
-            as: attr
+            as: attr,
           }
 
           sorts_configuration[attr] = sorts_configuration[attr].merge(options)
@@ -70,7 +70,10 @@ module FetcheableOnApi
       field = field_for(attr_name)
       return unless belong_to_attributes_for?(klass, field)
 
-      klass.arel_table[field].send(sort_method)
+      attribute = klass.arel_table[field]
+      attribute = attribute.lower if sorts_configuration[attr_name].fetch(:lower, false)
+
+      attribute.send(sort_method)
     end
 
     def class_for(attr_name, collection)
@@ -92,11 +95,11 @@ module FetcheableOnApi
     def format_params(params)
       res = {}
       params
-        .split(',')
+        .split(",")
         .each do |attribute|
-          sort_sign = attribute =~ /\A[+-]/ ? attribute.slice!(0) : '+'
-          res[attribute.to_sym] = SORT_ORDER[sort_sign]
-        end
+        sort_sign = attribute =~ /\A[+-]/ ? attribute.slice!(0) : "+"
+        res[attribute.to_sym] = SORT_ORDER[sort_sign]
+      end
       res
     end
   end
