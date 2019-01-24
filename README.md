@@ -152,6 +152,7 @@ class QuestionsController < ActionController::Base
   end
 end
 ```
+
 This allows you to pass a new parameter in the query:
 
 ```bash
@@ -184,6 +185,7 @@ $ curl -X GET \
 ```
 
 FetcheableOnApi support multiple sort fields by allowing comma-separated (U+002C COMMA, “,”) sort fields:
+
 ```ruby
 class QuestionsController < ActionController::Base
   #
@@ -290,6 +292,59 @@ $ curl -X GET \
         "category_id": 1,
         "content": "How to simply sort a collection with this gem ?",
         "answer": "Just add sort_by in your controller and call the apply_fetcheable method"
+    },
+    {
+        "id": 4,
+        "position": 2,
+        "category_id": 2,
+        "content": "Is it so simple?",
+        "answer": "Yes"
+    },
+    {
+        "id": 5,
+        "position": 3,
+        "category_id": 2,
+        "content": "Is this real life?",
+        "answer": "Yes this is real life"
+    }
+]
+```
+
+Furthermore you can sort on `lowered` attributes using the `:lower` option:
+
+```ruby
+class QuestionsController < ActionController::Base
+  #
+  # FetcheableOnApi
+  #
+  sort_by :answer, lower: true
+
+  # GET /questions
+  def index
+    questions = apply_fetcheable(Question.joins(:answer).includes(:answer).all)
+    render json: questions
+  end
+end
+```
+
+```bash
+$ curl -X GET \
+  'http://localhost:3000/questions?sort=position'
+
+[
+    {
+        "id": 3,
+        "position": 1,
+        "category_id": 1,
+        "content": "How to simply sort a collection with this gem ?",
+        "answer": "Just add sort_by in your controller and call the apply_fetcheable method"
+    },
+    {
+        "id": 6,
+        "position": 4,
+        "category_id": 1,
+        "content": "Why am I here?",
+        "answer": "just to demonstrate lowered sort",
     },
     {
         "id": 4,
