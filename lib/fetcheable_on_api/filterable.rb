@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 module FetcheableOnApi
-  # Applying the filter to a collection.
-  module Filtreable
+  # Filterable implements `filter` parameter support.
+  module Filterable
     #
-    # Supports
+    # Predicates supported for filtering.
     #
     PREDICATES_WITH_ARRAY = %i[
       does_not_match_all
@@ -40,8 +40,16 @@ module FetcheableOnApi
       end
     end
 
-    # Detects url parameters and applies the filter
+    # Class methods made available to your controllers.
     module ClassMethods
+      # Define a filterable attribute.
+      #
+      # @see FetcheableOnApi::Filterable::PREDICATES_WITH_ARRAY
+      #
+      # @param attrs [Array] options to define one or more filters.
+      # @option attrs [String, nil] :as Alias the filtered attribute
+      # @option attrs [String, nil] :class_name Override the class of the filter target
+      # @option attrs [String, nil] :with Use a specific predicate
       def filter_by(*attrs)
         options = attrs.extract_options!
         options.symbolize_keys!
@@ -51,7 +59,7 @@ module FetcheableOnApi
 
         attrs.each do |attr|
           filters_configuration[attr] ||= {
-            as: options[:as] || attr
+            as: options[:as] || attr,
           }
 
           filters_configuration[attr].merge!(options)
@@ -68,10 +76,6 @@ module FetcheableOnApi
     #
     protected
 
-    # def convert_to_datetime(array)
-    #   array.map { |el| foa_string_to_datetime(el.to_s) }
-    # end
-
     def valid_keys
       keys = filters_configuration.keys
       keys.each_with_index do |key, index|
@@ -79,7 +83,7 @@ module FetcheableOnApi
         next if predicate.respond_to?(:call) ||
                 PREDICATES_WITH_ARRAY.exclude?(predicate.to_sym)
 
-        keys[index] = { key => [] }
+        keys[index] = {key => []}
       end
 
       keys
@@ -95,17 +99,17 @@ module FetcheableOnApi
                             .to_hash
 
       filtering = filter_params.map do |column, values|
-        format      = filters_configuration[column.to_sym].fetch(:format, :string)
+        format = filters_configuration[column.to_sym].fetch(:format, :string)
         column_name = filters_configuration[column.to_sym].fetch(:as, column)
-        klass       = filters_configuration[column.to_sym].fetch(:class_name, collection.klass)
-        predicate   = filters_configuration[column.to_sym].fetch(:with, :ilike)
+        klass = filters_configuration[column.to_sym].fetch(:class_name, collection.klass)
+        predicate = filters_configuration[column.to_sym].fetch(:with, :ilike)
 
         if values.is_a?(String)
-          values.split(',').map do |value|
+          values.split(",").map do |value|
             predicates(predicate, collection, klass, column_name, value)
           end.inject(:or)
         else
-          values.map! { |el| el.split(',') }
+          values.map! { |el| el.split(",") }
           predicates(predicate, collection, klass, column_name, values)
         end
       end

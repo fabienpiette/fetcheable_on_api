@@ -1,8 +1,10 @@
 # frozen_string_literal: true
 
 module FetcheableOnApi
-  # Default configuration
+  # FetcheableOnApi configuration object.
+  #
   class Configuration
+    # @attribute [Integer] Default pagination size
     attr_accessor :pagination_default_size
 
     def initialize

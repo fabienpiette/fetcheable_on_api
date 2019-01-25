@@ -1,31 +1,36 @@
 # frozen_string_literal: true
 
-require 'fetcheable_on_api/configuration'
-require 'fetcheable_on_api/filtreable'
-require 'fetcheable_on_api/pagineable'
-require 'fetcheable_on_api/sortable'
-require 'fetcheable_on_api/version'
-require 'active_support'
-require 'date'
+require "fetcheable_on_api/configuration"
+require "fetcheable_on_api/filterable"
+require "fetcheable_on_api/pageable"
+require "fetcheable_on_api/sortable"
+require "fetcheable_on_api/version"
+require "active_support"
+require "date"
 
-# Detects params from url and apply
-# filters/sort/paginations to your classes.
+# FetcheableOnApi provides standardized sorting, filtering and pagination for
+# you API controllers.
+#
 module FetcheableOnApi
   #
-  # Configuration
+  # Global configuration settings for FetcheableOnApi
   #
-  # Configures global settings for FetcheableOnApi
-  #   FetcheableOnApi.configure do |config|
-  #     config.pagination_default_size = 25
-  #   end
-  class << self
-    attr_accessor :configuration
-  end
-
+  # @example Set default pagination size
+  #   FetcheableOnApi.configuration.pagination_default_size = 25
+  #
+  # @return [Configuration] The global configuration instance
   def self.configuration
     @configuration ||= Configuration.new
   end
 
+  # Configure FetcheableOnApi using a block.
+  #
+  # @example Set default pagination size
+  #   FetcheableOnApi.configure do |config|
+  #     config.pagination_default_size = 25
+  #   end
+  #
+  # @yield [Configuration] Gives the global instance to the block.
   def self.configure
     yield(configuration)
   end
@@ -33,7 +38,7 @@ module FetcheableOnApi
   #
   # Supports
   #
-  ArgumentError       = Class.new(ArgumentError)
+  ArgumentError = Class.new(ArgumentError)
   NotImplementedError = Class.new(NotImplementedError)
 
   #
@@ -41,9 +46,9 @@ module FetcheableOnApi
   #
   def self.included(klass)
     klass.class_eval do
-      include Filtreable
+      include Filterable
       include Sortable
-      include Pagineable
+      include Pageable
     end
   end
 
@@ -66,11 +71,10 @@ module FetcheableOnApi
 
   # Checks if the type of arguments is included in the permitted types
   def foa_valid_parameters!(
-    *keys, foa_permitted_types: foa_default_permitted_types
-  )
+                            *keys, foa_permitted_types: foa_default_permitted_types)
     return if foa_valid_params_types(
       *keys,
-      foa_permitted_types: foa_permitted_types
+    foa_permitted_types: foa_permitted_types,
     )
 
     raise FetcheableOnApi::ArgumentError,
@@ -78,8 +82,7 @@ module FetcheableOnApi
   end
 
   def foa_valid_params_types(
-    *keys, foa_permitted_types: foa_default_permitted_types
-  )
+                             *keys, foa_permitted_types: foa_default_permitted_types)
     foa_permitted_types.inject(false) do |res, type|
       res || foa_valid_params_type(params.dig(*keys), type)
     end
@@ -99,7 +102,7 @@ module FetcheableOnApi
 
   # Convert string to datetime.
   def foa_string_to_datetime(string)
-    DateTime.strptime(string, '%s')
+    DateTime.strptime(string, "%s")
   end
 end
 

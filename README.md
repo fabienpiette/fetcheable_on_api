@@ -329,7 +329,7 @@ end
 
 ```bash
 $ curl -X GET \
-  'http://localhost:3000/questions?sort=position'
+  'http://localhost:3000/questions?sort=answer'
 
 [
     {

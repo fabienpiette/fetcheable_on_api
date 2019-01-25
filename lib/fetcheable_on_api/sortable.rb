@@ -1,10 +1,10 @@
 # frozen_string_literal: true
 
 module FetcheableOnApi
-  # Application of a sorting on a collection
+  # Sortable implements `pagination` support.
   module Sortable
     #
-    # Supports
+    # Map of symbol to sorting direction supported by the module.
     #
     SORT_ORDER = {
       "+" => :asc,
@@ -22,8 +22,15 @@ module FetcheableOnApi
       end
     end
 
-    # Detects url parameters and applies sorting
+    # Class methods made available to your controllers.
     module ClassMethods
+      # Define one ore more sortable attribute configurations.
+      #
+      # @param attrs [Array] options to define one or more sorting
+      #   configurations.
+      # @option attrs [String, nil] :as Alias the sorted attribute
+      # @option attrs [true, false, nil] :with Wether to sort on the lowercase
+      #   attribute value.
       def sort_by(*attrs)
         options = attrs.extract_options!
         options.symbolize_keys!
