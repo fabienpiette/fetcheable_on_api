@@ -80,6 +80,7 @@ module FetcheableOnApi
       keys = filters_configuration.keys
       keys.each_with_index do |key, index|
         predicate = filters_configuration[key.to_sym].fetch(:with, :ilike)
+
         next if predicate.respond_to?(:call) ||
                 PREDICATES_WITH_ARRAY.exclude?(predicate.to_sym)
 
@@ -104,7 +105,9 @@ module FetcheableOnApi
         klass = filters_configuration[column.to_sym].fetch(:class_name, collection.klass)
         predicate = filters_configuration[column.to_sym].fetch(:with, :ilike)
 
-        if values.is_a?(String)
+        if %i[between not_between].include?(predicate)
+          predicates(predicate, collection, klass, column_name, values.split(","))
+        elsif values.is_a?(String)
           values.split(",").map do |value|
             predicates(predicate, collection, klass, column_name, value)
           end.inject(:or)
