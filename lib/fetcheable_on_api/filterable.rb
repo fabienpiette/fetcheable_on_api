@@ -81,6 +81,12 @@ module FetcheableOnApi
       keys.each_with_index do |key, index|
         predicate = filters_configuration[key.to_sym].fetch(:with, :ilike)
 
+        if(%i[between not_between].include?(predicate))
+          format = filters_configuration[key.to_sym].fetch(:format) { nil }
+          keys[index] = {key => []} if format == :array
+          next
+        end
+
         next if predicate.respond_to?(:call) ||
                 PREDICATES_WITH_ARRAY.exclude?(predicate.to_sym)
 
@@ -106,7 +112,13 @@ module FetcheableOnApi
         predicate = filters_configuration[column.to_sym].fetch(:with, :ilike)
 
         if %i[between not_between].include?(predicate)
-          predicates(predicate, collection, klass, column_name, values.split(","))
+          if values.is_a?(String)
+            predicates(predicate, collection, klass, column_name, values.split(","))
+          else
+            values.map do |value|
+              predicates(predicate, collection, klass, column_name, value.split(","))
+            end.inject(:or)
+          end
         elsif values.is_a?(String)
           values.split(",").map do |value|
             predicates(predicate, collection, klass, column_name, value)
