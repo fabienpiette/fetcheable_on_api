@@ -109,7 +109,12 @@ module FetcheableOnApi
         format = filters_configuration[column.to_sym].fetch(:format, :string)
         column_name = filters_configuration[column.to_sym].fetch(:as, column)
         klass = filters_configuration[column.to_sym].fetch(:class_name, collection.klass)
+        collection_klass = collection.name.constantize
         predicate = filters_configuration[column.to_sym].fetch(:with, :ilike)
+
+        if collection_klass != klass
+          collection = collection.joins(klass.table_name.to_sym)
+        end
 
         if %i[between not_between].include?(predicate)
           if values.is_a?(String)
