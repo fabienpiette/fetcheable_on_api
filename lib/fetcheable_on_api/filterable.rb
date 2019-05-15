@@ -139,7 +139,6 @@ module FetcheableOnApi
 
     # Apply arel predicate on collection
     def predicates(predicate, collection, klass, column_name, value)
-      puts "#{column_name}, #{value}"
       case predicate
       when :between
         klass.arel_table[column_name].between(value.first..value.last)
