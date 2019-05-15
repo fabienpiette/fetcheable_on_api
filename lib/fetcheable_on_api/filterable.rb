@@ -81,7 +81,7 @@ module FetcheableOnApi
       keys.each_with_index do |key, index|
         predicate = filters_configuration[key.to_sym].fetch(:with, :ilike)
 
-        if(%i[between not_between].include?(predicate))
+        if(%i[between not_between in in_all in_any].include?(predicate))
           format = filters_configuration[key.to_sym].fetch(:format) { nil }
           keys[index] = {key => []} if format == :array
           next
@@ -139,6 +139,7 @@ module FetcheableOnApi
 
     # Apply arel predicate on collection
     def predicates(predicate, collection, klass, column_name, value)
+      puts "#{column_name}, #{value}"
       case predicate
       when :between
         klass.arel_table[column_name].between(value.first..value.last)
@@ -167,11 +168,11 @@ module FetcheableOnApi
       when :gteq_any
         klass.arel_table[column_name].gteq_any(value)
       when :in
-        klass.arel_table[column_name].in(value)
+        klass.arel_table[column_name].in(value.flatten.compact.uniq)
       when :in_all
-        klass.arel_table[column_name].in_all(value)
+        klass.arel_table[column_name].in_all(value.flatten.compact.uniq)
       when :in_any
-        klass.arel_table[column_name].in_any(value)
+        klass.arel_table[column_name].in_any(value.flatten.compact.uniq)
       when :lt
         klass.arel_table[column_name].lt(value)
       when :lt_all
