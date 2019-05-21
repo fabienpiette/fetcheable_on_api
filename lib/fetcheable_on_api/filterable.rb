@@ -167,11 +167,23 @@ module FetcheableOnApi
       when :gteq_any
         klass.arel_table[column_name].gteq_any(value)
       when :in
-        klass.arel_table[column_name].in(value.flatten.compact.uniq)
+        if value.is_a?(Array)
+          klass.arel_table[column_name].in(value.flatten.compact.uniq)
+        else
+          klass.arel_table[column_name].in(value)
+        end
       when :in_all
-        klass.arel_table[column_name].in_all(value.flatten.compact.uniq)
+        if value.is_a?(Array)
+          klass.arel_table[column_name].in_all(value.flatten.compact.uniq)
+        else
+          klass.arel_table[column_name].in_all(value)
+        end
       when :in_any
-        klass.arel_table[column_name].in_any(value.flatten.compact.uniq)
+        if value.is_a?(Array)
+          klass.arel_table[column_name].in_any(value.flatten.compact.uniq)
+        else
+          klass.arel_table[column_name].in_any(value)
+        end
       when :lt
         klass.arel_table[column_name].lt(value)
       when :lt_all
