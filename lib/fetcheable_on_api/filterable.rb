@@ -113,7 +113,15 @@ module FetcheableOnApi
         predicate = filters_configuration[column.to_sym].fetch(:with, :ilike)
 
         if collection_klass != klass
-          collection = collection.joins(klass.table_name.to_sym)
+          if collection_klass.reflect_on_association(
+            klass.name.pluralize.downcase.to_sym
+          )
+            collection = collection.joins(klass.name.pluralize.downcase.to_sym)
+          elsif collection_klass.reflect_on_association(
+            klass.name.downcase.to_sym
+          )
+            collection = collection.joins(klass.name.downcase.to_sym)
+          end
         end
 
         if %i[between not_between].include?(predicate)
