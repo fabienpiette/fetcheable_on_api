@@ -52,7 +52,7 @@ module FetcheableOnApi
     def define_header_pagination(limit, count, page)
       response.headers["Pagination-Current-Page"] = page
       response.headers["Pagination-Per"] = limit
-      response.headers["Pagination-Total-Pages"] = 1 + (count / limit).ceil
+      response.headers["Pagination-Total-Pages"] = (count.to_f / limit.to_f).ceil
       response.headers["Pagination-Total-Count"] = count
     end
 
