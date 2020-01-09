@@ -505,6 +505,10 @@ $ curl -X GET \
 ]
 ```
 
+By default fetcheable_on_api will join the associated model using the
+`class_name` option you have provided. If another association should be used as
+the target, use the `association:` option instead.
+
 Furthermore you can specify one of the supported `Arel` predicate.
 
 ```ruby
