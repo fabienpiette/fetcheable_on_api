@@ -53,7 +53,9 @@ module FetcheableOnApi
       def filter_by(*attrs)
         options = attrs.extract_options!
         options.symbolize_keys!
-        options.assert_valid_keys(:as, :class_name, :with, :format)
+        options.assert_valid_keys(
+          :as, :class_name, :with, :format, :association
+        )
 
         self.filters_configuration = filters_configuration.dup
 
@@ -106,14 +108,20 @@ module FetcheableOnApi
                             .to_hash
 
       filtering = filter_params.map do |column, values|
-        format = filters_configuration[column.to_sym].fetch(:format, :string)
-        column_name = filters_configuration[column.to_sym].fetch(:as, column)
-        klass = filters_configuration[column.to_sym].fetch(:class_name, collection.klass)
+        config = filters_configuration[column.to_sym]
+
+        format = config.fetch(:format, :string)
+        column_name = config.fetch(:as, column)
+        klass = config.fetch(:class_name, collection.klass)
         collection_klass = collection.name.constantize
-        predicate = filters_configuration[column.to_sym].fetch(:with, :ilike)
+        association_class_or_name = config.fetch(
+          :association, klass.table_name.to_sym
+        )
+
+        predicate = config.fetch(:with, :ilike)
 
         if collection_klass != klass
-          collection = collection.joins(klass.table_name.to_sym)
+          collection = collection.joins(association_class_or_name)
         end
 
         if %i[between not_between].include?(predicate)
