@@ -199,7 +199,8 @@ RSpec.describe 'FetcheableOnApi Integration' do
         result = controller.send(:apply_fetcheable, collection)
 
         expect(collection.where_conditions).not_to be_empty
-        expect(collection.order_applied).to have(2).items
+        expect(collection.order_applied).to be_an(Array)
+        expect(collection.order_applied.length).to eq(2)
       end
     end
 
@@ -322,7 +323,8 @@ RSpec.describe 'FetcheableOnApi Integration' do
 
         # All operations applied
         expect(collection.where_conditions).not_to be_empty
-        expect(collection.order_applied).to have(2).items
+        expect(collection.order_applied).to be_an(Array)
+        expect(collection.order_applied.length).to eq(2)
         expect(collection.limit_applied).to eq(20)
         expect(collection.offset_applied).to eq(0)
 

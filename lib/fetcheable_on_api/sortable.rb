@@ -194,7 +194,8 @@ module FetcheableOnApi
       attribute = klass.arel_table[field]
 
       # Apply lowercase transformation if configured
-      attribute = attribute.lower if sorts_configuration[attr_name].fetch(:lower, false)
+      config = sorts_configuration[attr_name] || {}
+      attribute = attribute.lower if config.fetch(:lower, false)
 
       # Apply the sort direction (asc or desc)
       attribute.send(sort_method)
@@ -208,7 +209,8 @@ module FetcheableOnApi
     # @return [Class] The model class to use
     # @private
     def class_for(attr_name, collection)
-      sorts_configuration[attr_name].fetch(:class_name, collection.klass)
+      config = sorts_configuration[attr_name] || {}
+      config.fetch(:class_name, collection.klass)
     end
 
     # Get the database field name for this sort attribute.
@@ -218,7 +220,8 @@ module FetcheableOnApi
     # @return [String] The database column name
     # @private
     def field_for(attr_name)
-      sorts_configuration[attr_name].fetch(:as, attr_name).to_s
+      config = sorts_configuration[attr_name] || {}
+      config.fetch(:as, attr_name).to_s
     end
 
     # Check if the given field exists as an attribute on the model class.

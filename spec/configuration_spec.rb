@@ -11,7 +11,7 @@ class MockResponse
 end
 
 class MockCollection
-  def except(_args)
+  def except(*args)
     MockExceptCollection.new
   end
 end

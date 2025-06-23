@@ -21,6 +21,55 @@ class MockSortableController
   end
 end
 
+class MockActiveRecord
+  def self.table_name
+    'mock_records'
+  end
+
+  def self.attribute_names
+    %w[id name email created_at category_id]
+  end
+
+  def self.arel_table
+    @arel_table ||= MockSortableArelTable.new(table_name)
+  end
+end
+
+class MockCategory
+  def self.table_name
+    'categories'
+  end
+
+  def self.attribute_names
+    %w[id name description]
+  end
+
+  def self.arel_table
+    @arel_table ||= MockSortableArelTable.new(table_name)
+  end
+end
+
+class MockArelTable
+  attr_reader :table_name
+
+  def initialize(table_name)
+    @table_name = table_name
+  end
+
+  def [](column)
+    MockArelColumn.new(column, self)
+  end
+end
+
+class MockArelColumn
+  attr_reader :column_name, :table
+
+  def initialize(column_name, table)
+    @column_name = column_name
+    @table = table
+  end
+end
+
 class MockSortableCollection
   attr_reader :klass, :order_applied
 
@@ -81,12 +130,6 @@ class MockSortableArelTable < MockArelTable
   end
 end
 
-# Override the arel_table method for our mock classes
-class MockActiveRecord
-  def self.arel_table
-    @arel_table ||= MockSortableArelTable.new(table_name)
-  end
-end
 
 RSpec.describe FetcheableOnApi::Sortable do
   let(:controller) { MockSortableController.new }
@@ -200,7 +243,8 @@ RSpec.describe FetcheableOnApi::Sortable do
 
       it 'applies multiple sorts in order' do
         result = controller.send(:apply_sort, collection)
-        expect(collection.order_applied).to have(2).items
+        expect(collection.order_applied).to be_an(Array)
+        expect(collection.order_applied.length).to eq(2)
         expect(collection.order_applied.first.direction).to eq(:asc)
         expect(collection.order_applied.last.direction).to eq(:desc)
       end
@@ -398,7 +442,8 @@ RSpec.describe FetcheableOnApi::Sortable do
       MockSortableController.sort_by :name
       controller.params = ActionController::Parameters.new(sort: 'name,invalid_field')
       result = controller.send(:apply_sort, collection)
-      expect(collection.order_applied).to have(1).item
+      expect(collection.order_applied).to be_an(Array)
+      expect(collection.order_applied.length).to eq(1)
     end
   end
 

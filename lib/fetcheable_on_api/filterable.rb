@@ -60,27 +60,28 @@ module FetcheableOnApi
     # @example Usage with array predicates
     #   filter_by :tags, with: :in_all
     #   # Expects: filter[tags][]= or filter[tags]=value1,value2
+    # Arel predicates that expect array values instead of single values.
     PREDICATES_WITH_ARRAY = %i[
-      does_not_match_all # None of the values should match
-      does_not_match_any # At least one value should not match
-      eq_all # All values must equal
-      eq_any # Any value must equal
-      gt_all # All values must be greater than
-      gt_any # Any value must be greater than
-      gteq_all # All values must be greater than or equal
-      gteq_any # Any value must be greater than or equal
-      in_all # Must be in all of the value sets
-      in_any # Must be in any of the value sets
-      lt_all # All values must be less than
-      lt_any # Any value must be less than
-      lteq_all # All values must be less than or equal
-      lteq_any # Any value must be less than or equal
-      matches_all # Must match all patterns
-      matches_any # Must match any pattern
-      not_eq_all # Must not equal all values
-      not_eq_any # Must not equal any value
-      not_in_all # Must not be in all value sets
-      not_in_any # Must not be in any value set
+      does_not_match_all
+      does_not_match_any
+      eq_all
+      eq_any
+      gt_all
+      gt_any
+      gteq_all
+      gteq_any
+      in_all
+      in_any
+      lt_all
+      lt_any
+      lteq_all
+      lteq_any
+      matches_all
+      matches_any
+      not_eq_all
+      not_eq_any
+      not_in_all
+      not_in_any
     ].freeze
 
     # Hook called when Filterable is included in a class.
