@@ -179,8 +179,10 @@ module FetcheableOnApi
         # Special handling for predicates that work with ranges or arrays
         if %i[between not_between in in_all in_any].include?(predicate)
           format = filters_configuration[key.to_sym].fetch(:format) { nil }
-          # Use array format for explicit array formatting
-          keys[index] = { key => [] } if format == :array
+          # Use array format for explicit array formatting or for array predicates
+          if format == :array || PREDICATES_WITH_ARRAY.include?(predicate.to_sym)
+            keys[index] = { key => [] }
+          end
           next
         end
 
@@ -239,6 +241,9 @@ module FetcheableOnApi
           collection = collection.joins(association_class_or_name)
         end
 
+        # Skip if values is nil or empty
+        next if values.nil? || values == ""
+        
         # Handle range-based predicates (between, not_between)
         if %i[between not_between].include?(predicate)
           if values.is_a?(String)

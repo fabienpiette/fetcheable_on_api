@@ -77,12 +77,17 @@ end
 class MockExceptCollection
   attr_reader :count_value
 
-  def initialize(count_value)
+  def initialize(count_value = 100, should_error = false)
     @count_value = count_value
+    @should_error = should_error
   end
 
   def count
-    @count_value
+    if @should_error
+      raise StandardError, 'Database error'
+    else
+      @count_value
+    end
   end
 end
 
@@ -405,18 +410,18 @@ RSpec.describe FetcheableOnApi::Pageable do
 
   describe 'integration with configuration' do
     context 'when configuration pagination_default_size is changed' do
+      let(:original_size) { FetcheableOnApi.configuration.pagination_default_size }
+      
       before do
-        original_size = FetcheableOnApi.configuration.pagination_default_size
         FetcheableOnApi.configuration.pagination_default_size = 50
 
         controller.params = ActionController::Parameters.new(
           page: { number: 1 }
         )
+      end
 
-        # Clean up after test
-        after do
-          FetcheableOnApi.configuration.pagination_default_size = original_size
-        end
+      after do
+        FetcheableOnApi.configuration.pagination_default_size = original_size
       end
 
       it 'uses the updated default size' do

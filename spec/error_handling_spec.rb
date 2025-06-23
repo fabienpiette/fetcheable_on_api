@@ -12,7 +12,8 @@ class MockResponse
 end
 
 class MockExceptCollection
-  def initialize(should_error = false)
+  def initialize(count_value = 100, should_error = false)
+    @count_value = count_value
     @should_error = should_error
   end
 
@@ -20,7 +21,7 @@ class MockExceptCollection
     if @should_error
       raise StandardError, 'Database error'
     else
-      100
+      @count_value
     end
   end
 end
@@ -500,7 +501,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
       let(:error_collection) do
         MockErrorCollection.new.tap do |coll|
           def coll.except(*_args)
-            MockExceptCollection.new(true)  # Pass true to make it error
+            MockExceptCollection.new(100, true)  # Pass count and error flag
           end
         end
       end

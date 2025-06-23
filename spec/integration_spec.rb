@@ -11,6 +11,157 @@ class MockResponse
   end
 end
 
+class MockActiveRecord
+  def self.table_name
+    'mock_records'
+  end
+
+  def self.attribute_names
+    %w[id name email created_at category_id]
+  end
+
+  def self.arel_table
+    @arel_table ||= MockArelTable.new(table_name)
+  end
+end
+
+class MockCategory
+  def self.table_name
+    'categories'
+  end
+
+  def self.attribute_names  
+    %w[id name description]
+  end
+
+  def self.arel_table
+    @arel_table ||= MockArelTable.new(table_name)
+  end
+end
+
+class MockArelTable
+  attr_reader :table_name
+
+  def initialize(table_name)
+    @table_name = table_name
+  end
+
+  def [](column)
+    MockArelColumn.new(column, self)
+  end
+end
+
+class MockArelColumn
+  attr_reader :column_name, :table
+
+  def initialize(column_name, table)
+    @column_name = column_name
+    @table = table
+  end
+
+  # Define all the Arel predicate methods
+  %w[
+    between does_not_match does_not_match_all does_not_match_any
+    eq eq_all eq_any gt gt_all gt_any gteq gteq_all gteq_any
+    in in_all in_any lt lt_all lt_any lteq lteq_all lteq_any
+    matches matches_all matches_any not_between not_eq not_eq_all
+    not_eq_any not_in not_in_all not_in_any
+  ].each do |method_name|
+    define_method(method_name) do |value|
+      MockArelPredicate.new(method_name, column_name, value)
+    end
+  end
+
+  def asc
+    MockSortOrder.new(self, :asc)
+  end
+
+  def desc
+    MockSortOrder.new(self, :desc)
+  end
+
+  def lower
+    MockLowerColumn.new(self)
+  end
+end
+
+class MockLowerColumn
+  attr_reader :original_column
+
+  def initialize(original_column)
+    @original_column = original_column
+  end
+
+  def asc
+    MockSortOrder.new(self, :asc, lower: true)
+  end
+
+  def desc
+    MockSortOrder.new(self, :desc, lower: true)
+  end
+end
+
+class MockArelPredicate
+  attr_reader :predicate, :column, :value
+
+  def initialize(predicate, column, value)
+    @predicate = predicate
+    @column = column
+    @value = value
+  end
+
+  def and(other)
+    MockArelComposite.new(:and, self, other)
+  end
+
+  def or(other)
+    MockArelComposite.new(:or, self, other)
+  end
+end
+
+class MockArelComposite
+  attr_reader :operator, :left, :right
+
+  def initialize(operator, left, right)
+    @operator = operator
+    @left = left
+    @right = right
+  end
+
+  def and(other)
+    MockArelComposite.new(:and, self, other)
+  end
+
+  def or(other)
+    MockArelComposite.new(:or, self, other)
+  end
+end
+
+class MockSortOrder
+  attr_reader :column, :direction, :lower
+
+  def initialize(column, direction, lower: false)
+    @column = column
+    @direction = direction  
+    @lower = lower
+  end
+end
+
+class MockExceptCollection
+  def initialize(count_value = 100, should_error = false)
+    @count_value = count_value
+    @should_error = should_error
+  end
+
+  def count
+    if @should_error
+      raise StandardError, 'Database error'
+    else
+      @count_value
+    end
+  end
+end
+
 class MockIntegrationController
   include FetcheableOnApi
 
@@ -19,6 +170,16 @@ class MockIntegrationController
   def initialize(params = {})
     @params = ActionController::Parameters.new(params)
     @response = MockResponse.new
+  end
+end
+
+class MockClassName
+  def initialize(klass)
+    @klass = klass
+  end
+
+  def constantize
+    @klass
   end
 end
 
@@ -36,7 +197,7 @@ class MockIntegrationCollection
   end
 
   def name
-    @klass.name
+    MockClassName.new(@klass)
   end
 
   def joins(association)
@@ -90,7 +251,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
     end
 
     it 'provides instance method apply_fetcheable' do
-      expect(controller).to respond_to(:apply_fetcheable, true)
+      expect(controller.protected_methods).to include(:apply_fetcheable)
     end
   end
 
