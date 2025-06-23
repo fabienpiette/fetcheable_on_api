@@ -583,4 +583,31 @@ RSpec.describe 'FetcheableOnApi Integration' do
       expect(FetcheableOnApi).to be_const_defined(:NotImplementedError)
     end
   end
+
+  describe 'format functionality integration' do
+    before do
+      MockIntegrationController.filters_configuration = {}
+      MockIntegrationController.filter_by :created_at, with: :between, format: :datetime
+    end
+
+    context 'with datetime format filtering' do
+      before do
+        controller.params = ActionController::Parameters.new(
+          filter: { created_at: '1609459200,1640995200' }
+        )
+      end
+
+      it 'applies datetime format conversion during filtering' do
+        # Mock the datetime conversion method to verify it's called
+        expect(controller).to receive(:foa_string_to_datetime).with('1609459200').and_return(DateTime.new(2021, 1, 1))
+        expect(controller).to receive(:foa_string_to_datetime).with('1640995200').and_return(DateTime.new(2022, 1, 1))
+
+        result = controller.send(:apply_fetcheable, collection)
+
+        # Verify filtering was applied
+        expect(collection.where_conditions).not_to be_empty
+        expect(result).to eq(collection)
+      end
+    end
+  end
 end
