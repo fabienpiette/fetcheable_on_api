@@ -1,6 +1,10 @@
 require 'bundler/setup'
 require 'fetcheable_on_api'
 require 'active_support'
+require 'active_support/core_ext'
+
+# Load test helpers
+Dir[File.expand_path('support/**/*.rb', __dir__)].each { |f| require f }
 
 RSpec.configure do |config|
   # Enable flags like --only-failures and --next-failure
