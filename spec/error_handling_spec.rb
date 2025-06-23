@@ -309,7 +309,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
       end
 
       it 'accepts lambda predicates without error' do
-        custom_predicate = ->(_collection, _value) { MockArelPredicate.new }
+        custom_predicate = ->(_collection, _value) { MockArelPredicate.new('custom', 'name', 'test') }
         MockErrorController.filter_by :name, with: custom_predicate
         controller.params = ActionController::Parameters.new(filter: { name: 'test' })
 

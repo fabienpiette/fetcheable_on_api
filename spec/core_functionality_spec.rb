@@ -15,8 +15,11 @@ end
 
 RSpec.describe 'FetcheableOnApi Core Functionality' do
   describe 'Module inclusion' do
-    it 'includes all required modules' do
-      expect(FetcheableOnApi.included_modules).to include(
+    it 'includes all required modules when included in a class' do
+      test_class = Class.new
+      test_class.include(FetcheableOnApi)
+      
+      expect(test_class.included_modules).to include(
         FetcheableOnApi::Filterable,
         FetcheableOnApi::Sortable,
         FetcheableOnApi::Pageable

@@ -3,6 +3,14 @@
 require 'spec_helper'
 
 # Mock classes for integration testing
+class MockResponse
+  attr_accessor :headers
+
+  def initialize
+    @headers = {}
+  end
+end
+
 class MockIntegrationController
   include FetcheableOnApi
 

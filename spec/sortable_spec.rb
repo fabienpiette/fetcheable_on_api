@@ -326,14 +326,14 @@ RSpec.describe FetcheableOnApi::Sortable do
 
     it 'handles empty strings' do
       result = controller.send(:format_params, '')
-      expect(result).to eq('' => :asc)
+      expect(result).to eq({})
     end
 
     it 'handles comma-separated with spaces' do
       result = controller.send(:format_params, 'name, -email')
       expect(result).to eq(
         name: :asc,
-        ' -email': :desc
+        email: :desc
       )
     end
   end

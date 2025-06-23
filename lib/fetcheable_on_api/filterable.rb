@@ -216,7 +216,7 @@ module FetcheableOnApi
 
       # Extract and permit only configured filter parameters
       filter_params = params.require(:filter)
-                            .permit(valid_keys)
+                            .permit(*valid_keys)
                             .to_hash
 
       # Process each filter parameter and build Arel predicates

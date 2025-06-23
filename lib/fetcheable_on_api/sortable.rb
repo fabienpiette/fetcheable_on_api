@@ -258,6 +258,9 @@ module FetcheableOnApi
       params
         .split(',') # Split on commas to get individual fields
         .each do |attribute|
+        # Trim whitespace
+        attribute = attribute.strip
+        
         # Extract the direction prefix (+ or -) or default to +
         sort_sign = attribute =~ /\A[+-]/ ? attribute.slice!(0) : '+'
 

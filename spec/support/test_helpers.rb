@@ -20,10 +20,10 @@ module TestHelpers
       keys.each do |key|
         if key.is_a?(Hash)
           key.each do |k, _v|
-            result[k] = self[k] if key?(k)
+            result[k] = self[k] if has_key?(k)
           end
         else
-          result[key] = self[key] if key?(key)
+          result[key] = self[key] if has_key?(key)
         end
       end
       result
