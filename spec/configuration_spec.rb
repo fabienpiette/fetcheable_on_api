@@ -2,6 +2,35 @@
 
 require 'spec_helper'
 
+class MockResponse
+  attr_accessor :headers
+  
+  def initialize
+    @headers = {}
+  end
+end
+
+class MockCollection
+  def except(_args)
+    MockExceptCollection.new
+  end
+end
+
+class MockExceptCollection
+  def count
+    100
+  end
+end
+
+class MockLimitedCollection
+  def offset(_value)
+    MockResult.new
+  end
+end
+
+class MockResult
+end
+
 RSpec.describe FetcheableOnApi::Configuration do
   let(:configuration) { FetcheableOnApi::Configuration.new }
 
@@ -140,20 +169,22 @@ RSpec.describe 'FetcheableOnApi Configuration Integration' do
   describe 'configuration usage in modules' do
     let(:controller) do
       Class.new do
-        include FetcheableOnApi::Pageable
+        include FetcheableOnApi
         attr_accessor :params, :response
 
         def initialize
           @params = ActionController::Parameters.new(page: { number: 1 })
-          @response = double('response', headers: {})
+          @response = MockResponse.new
         end
       end.new
     end
 
     let(:collection) do
-      double('collection',
-             except: double('except_collection', count: 100),
-             limit: double('limited_collection', offset: double('result')))
+      MockCollection.new.tap do |coll|
+        def coll.limit(_value)
+          MockLimitedCollection.new
+        end
+      end
     end
 
     after do

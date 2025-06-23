@@ -4,7 +4,7 @@ require 'spec_helper'
 
 # Mock classes for testing Pageable
 class MockPageableController
-  include FetcheableOnApi::Pageable
+  include FetcheableOnApi
 
   attr_accessor :params, :response
 

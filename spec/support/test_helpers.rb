@@ -6,7 +6,9 @@ module TestHelpers
   class MockParams < Hash
     def initialize(params = {})
       super()
-      update(params)
+      params.each do |key, value|
+        self[key] = value.is_a?(Hash) ? MockParams.new(value) : value
+      end
     end
 
     def require(key)

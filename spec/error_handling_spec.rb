@@ -3,6 +3,152 @@
 require 'spec_helper'
 
 # Mock classes for error handling testing
+class MockResponse
+  attr_accessor :headers
+  
+  def initialize
+    @headers = {}
+  end
+end
+
+class MockExceptCollection
+  def initialize(should_error = false)
+    @should_error = should_error
+  end
+
+  def count
+    if @should_error
+      raise StandardError, 'Database error'
+    else
+      100
+    end
+  end
+end
+
+class MockActiveRecord
+  def self.table_name
+    'mock_records'
+  end
+
+  def self.attribute_names
+    %w[id name email created_at category_id]
+  end
+
+  def self.arel_table
+    @arel_table ||= MockArelTable.new(table_name)
+  end
+end
+
+class MockCategory
+  def self.table_name
+    'categories'
+  end
+
+  def self.attribute_names  
+    %w[id name description]
+  end
+
+  def self.arel_table
+    @arel_table ||= MockArelTable.new(table_name)
+  end
+end
+
+class MockArelTable
+  attr_reader :table_name
+
+  def initialize(table_name)
+    @table_name = table_name
+  end
+
+  def [](column)
+    MockArelColumn.new(column, self)
+  end
+end
+
+class MockArelColumn
+  attr_reader :column_name, :table
+
+  def initialize(column_name, table)
+    @column_name = column_name
+    @table = table
+  end
+
+  # Define all the Arel predicate methods
+  %w[
+    between does_not_match does_not_match_all does_not_match_any
+    eq eq_all eq_any gt gt_all gt_any gteq gteq_all gteq_any
+    in in_all in_any lt lt_all lt_any lteq lteq_all lteq_any
+    matches matches_all matches_any not_between not_eq not_eq_all
+    not_eq_any not_in not_in_all not_in_any
+  ].each do |method_name|
+    define_method(method_name) do |value|
+      MockArelPredicate.new(method_name, column_name, value)
+    end
+  end
+
+  def asc
+    MockSortOrder.new(self, :asc)
+  end
+
+  def desc
+    MockSortOrder.new(self, :desc)
+  end
+end
+
+class MockArelPredicate
+  attr_reader :predicate, :column, :value
+
+  def initialize(predicate, column, value)
+    @predicate = predicate
+    @column = column
+    @value = value
+  end
+
+  def and(other)
+    MockArelComposite.new(:and, self, other)
+  end
+
+  def or(other)
+    MockArelComposite.new(:or, self, other)
+  end
+end
+
+class MockArelComposite
+  attr_reader :operator, :left, :right
+
+  def initialize(operator, left, right)
+    @operator = operator
+    @left = left
+    @right = right
+  end
+
+  def and(other)
+    MockArelComposite.new(:and, self, other)
+  end
+
+  def or(other)
+    MockArelComposite.new(:or, self, other)
+  end
+end
+
+class MockSortOrder
+  attr_reader :column, :direction
+
+  def initialize(column, direction)
+    @column = column
+    @direction = direction
+  end
+end
+
+class MockClassName
+  def initialize(klass)
+    @klass = klass
+  end
+
+  def constantize
+    @klass
+  end
+end
 class MockErrorController
   include FetcheableOnApi
 
@@ -10,7 +156,7 @@ class MockErrorController
 
   def initialize(params = {})
     @params = ActionController::Parameters.new(params)
-    @response = double('response', headers: {})
+    @response = MockResponse.new
   end
 end
 
@@ -22,7 +168,7 @@ class MockErrorCollection
   end
 
   def name
-    @klass.name
+    MockClassName.new(@klass)
   end
 
   def joins(association)
@@ -48,7 +194,7 @@ class MockErrorCollection
   end
 
   def except(*_args)
-    self
+    MockExceptCollection.new
   end
 
   def count
@@ -163,7 +309,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
       end
 
       it 'accepts lambda predicates without error' do
-        custom_predicate = ->(_collection, _value) { double('arel_predicate') }
+        custom_predicate = ->(_collection, _value) { MockArelPredicate.new }
         MockErrorController.filter_by :name, with: custom_predicate
         controller.params = ActionController::Parameters.new(filter: { name: 'test' })
 
@@ -352,12 +498,10 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
 
     describe 'collection count errors' do
       let(:error_collection) do
-        double('error_collection').tap do |coll|
-          allow(coll).to receive(:except).and_return(
-            double('except_collection').tap do |exc|
-              allow(exc).to receive(:count).and_raise(StandardError, 'Database error')
-            end
-          )
+        MockErrorCollection.new.tap do |coll|
+          def coll.except(*_args)
+            MockExceptCollection.new(true)  # Pass true to make it error
+          end
         end
       end
 

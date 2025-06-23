@@ -3,14 +3,21 @@
 require 'spec_helper'
 
 # Mock classes for testing Sortable (reusing some from filterable_spec)
+class MockResponse
+  attr_accessor :headers
+  
+  def initialize
+    @headers = {}
+  end
+end
 class MockSortableController
-  include FetcheableOnApi::Sortable
+  include FetcheableOnApi
 
   attr_accessor :params, :response
 
   def initialize(params = {})
     @params = ActionController::Parameters.new(params)
-    @response = double('response', headers: {})
+    @response = MockResponse.new
   end
 end
 

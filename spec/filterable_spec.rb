@@ -125,14 +125,22 @@ class MockCollection
   end
 end
 
+class MockResponse
+  attr_accessor :headers
+
+  def initialize
+    @headers = {}
+  end
+end
+
 class MockController
-  include FetcheableOnApi::Filterable
+  include FetcheableOnApi
 
   attr_accessor :params, :response
 
   def initialize(params = {})
     @params = ActionController::Parameters.new(params)
-    @response = double('response', headers: {})
+    @response = MockResponse.new
   end
 end
 

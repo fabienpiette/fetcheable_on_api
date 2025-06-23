@@ -2,6 +2,17 @@
 
 require 'spec_helper'
 
+class MockResponse
+  attr_accessor :headers
+  
+  def initialize
+    @headers = {}
+  end
+end
+
+class MockCollection
+end
+
 RSpec.describe 'FetcheableOnApi Core Functionality' do
   describe 'Module inclusion' do
     it 'includes all required modules' do
@@ -120,7 +131,7 @@ RSpec.describe 'FetcheableOnApi Core Functionality' do
 
         def initialize
           @params = TestHelpers::MockParams.new
-          @response = double('response', headers: {})
+          @response = MockResponse.new
         end
 
         def test_apply_fetcheable(collection)
@@ -129,7 +140,7 @@ RSpec.describe 'FetcheableOnApi Core Functionality' do
       end
 
       instance = test_class.new
-      mock_collection = double('collection')
+      mock_collection = MockCollection.new
 
       # Mock the individual apply methods
       allow(instance).to receive(:apply_filters).and_return(mock_collection)
