@@ -1,7 +1,71 @@
 
 # FetcheableOnApi
 
-FetcheableOnApi allows you to quickly and easily set up a filter system based on the JSONAPI specification for ActiveRecord objects.
+[![Gem Version](https://badge.fury.io/rb/fetcheable_on_api.svg)](https://badge.fury.io/rb/fetcheable_on_api)
+[![Documentation](https://img.shields.io/badge/docs-yard-blue.svg)](https://rubydoc.info/gems/fetcheable_on_api)
+
+FetcheableOnApi is a Ruby gem that provides **filtering**, **sorting**, and **pagination** functionality for Rails API controllers following the [JSONAPI specification](https://jsonapi.org/). It allows you to quickly and easily transform query parameters into ActiveRecord scopes without writing repetitive controller code.
+
+## Features
+
+- 🔍 **Comprehensive Filtering**: 30+ filter predicates (eq, ilike, between, in, gt, lt, etc.)
+- 📊 **Flexible Sorting**: Multi-field sorting with ascending/descending control
+- 📄 **Built-in Pagination**: Page-based pagination with automatic response headers
+- 🔗 **Association Support**: Filter and sort through model associations
+- 🛡️ **Security**: Built-in parameter validation and SQL injection protection
+- ⚙️ **Configurable**: Customize defaults and behavior per application
+- 🎯 **JSONAPI Compliant**: Follows official JSONAPI specification patterns
+
+## Quick Start
+
+Add the gem to your Gemfile and configure your controllers:
+
+```ruby
+class UsersController < ApplicationController
+  # Define allowed filters and sorts
+  filter_by :name, :email, :status
+  sort_by :name, :created_at, :updated_at
+  
+  def index
+    users = apply_fetcheable(User.all)
+    render json: users
+  end
+end
+```
+
+Now your API supports rich query parameters:
+
+```bash
+# Filter users by name and status
+GET /users?filter[name]=john&filter[status]=active
+
+# Sort by name ascending, then created_at descending  
+GET /users?sort=name,-created_at
+
+# Paginate results
+GET /users?page[number]=2&page[size]=25
+
+# Combine all features
+GET /users?filter[status]=active&sort=-created_at&page[number]=1&page[size]=10
+```
+
+## Table of Contents
+
+- [Installation](#installation)
+- [Configuration](#configuration)
+- [Usage](#usage)
+  - [Basic Filtering](#basic-filtering)
+  - [Advanced Filtering](#advanced-filtering)
+  - [Sorting](#sorting)
+  - [Pagination](#pagination)
+  - [Association Filtering and Sorting](#association-filtering-and-sorting)
+- [API Reference](#api-reference)
+  - [Filter Predicates](#filter-predicates)
+  - [Configuration Options](#configuration-options)
+- [Examples](#examples)
+- [Development](#development)
+- [Contributing](#contributing)
+- [License](#license)
 
 ## Installation
 
@@ -26,7 +90,253 @@ Finally, run the install generator:
 It will create the following initializer `config/initializers/fetcheable_on_api.rb`.
 This file contains all the informations about the existing configuration options.
 
+## Configuration
+
+Configure FetcheableOnApi in `config/initializers/fetcheable_on_api.rb`:
+
+```ruby
+FetcheableOnApi.configure do |config|
+  # Default number of records per page (default: 25)
+  config.pagination_default_size = 50
+end
+```
+
+### Available Configuration Options
+
+| Option | Description | Default | Example |
+|--------|-------------|---------|---------|
+| `pagination_default_size` | Default page size when not specified | `25` | `50` |
+
 ## Usage
+
+### Basic Filtering
+
+Configure which attributes can be filtered in your controllers:
+
+```ruby
+class UsersController < ApplicationController
+  # Allow filtering by these attributes
+  filter_by :name, :email, :status, :created_at
+  
+  def index
+    users = apply_fetcheable(User.all)
+    render json: users
+  end
+end
+```
+
+Examples of filter queries:
+
+```bash
+# Simple text filtering (uses ILIKE by default)
+GET /users?filter[name]=john
+
+# Multiple filters (AND logic between different fields)
+GET /users?filter[name]=john&filter[status]=active
+
+# Multiple values for same field (OR logic)
+GET /users?filter[status]=active,pending
+```
+
+### Advanced Filtering
+
+Use custom predicates for more specific filtering:
+
+```ruby
+class UsersController < ApplicationController
+  filter_by :name                    # Default: ilike (partial match)
+  filter_by :email, with: :eq        # Exact match
+  filter_by :age, with: :gteq        # Greater than or equal
+  filter_by :created_at, with: :between, format: :datetime
+  
+  def index
+    users = apply_fetcheable(User.all)
+    render json: users
+  end
+end
+```
+
+### Sorting
+
+Configure sortable attributes:
+
+```ruby
+class UsersController < ApplicationController  
+  # Allow sorting by these attributes
+  sort_by :name, :email, :created_at, :updated_at
+  
+  # Case-insensitive sorting
+  sort_by :display_name, lower: true
+  
+  def index
+    users = apply_fetcheable(User.all)
+    render json: users
+  end
+end
+```
+
+Sorting query examples:
+
+```bash
+# Single field ascending
+GET /users?sort=name
+
+# Single field descending
+GET /users?sort=-created_at
+
+# Multiple fields (priority order)
+GET /users?sort=status,-created_at,name
+```
+
+### Pagination
+
+Pagination is automatically available and follows JSONAPI specification:
+
+```bash
+# Get page 2 with 25 records per page (default size)
+GET /users?page[number]=2
+
+# Custom page size
+GET /users?page[number]=1&page[size]=50
+
+# Combine with filtering and sorting
+GET /users?filter[status]=active&sort=-created_at&page[number]=2&page[size]=10
+```
+
+Response headers automatically include pagination metadata:
+
+```
+Pagination-Current-Page: 2
+Pagination-Per: 10
+Pagination-Total-Pages: 15
+Pagination-Total-Count: 150
+```
+
+### Association Filtering and Sorting
+
+Filter and sort through model associations:
+
+```ruby
+class PostsController < ApplicationController
+  # Filter/sort by post attributes
+  filter_by :title, :content, :published
+  sort_by :title, :created_at
+  
+  # Filter/sort by author name (User model)
+  filter_by :author, class_name: User, as: 'name'
+  sort_by :author, class_name: User, as: 'name'
+  
+  # Sort by author name with explicit association (useful when field name differs from association)
+  sort_by :author_name, class_name: User, as: 'name', association: :author
+  
+  # Filter by category name
+  filter_by :category, class_name: Category, as: 'name'
+  
+  def index
+    # Make sure to join the associations
+    posts = apply_fetcheable(Post.joins(:author, :category))
+    render json: posts
+  end
+end
+```
+
+Query examples:
+
+```bash
+# Filter by author name
+GET /posts?filter[author]=john
+
+# Sort by author name, then post creation date
+GET /posts?sort=author,-created_at
+
+# Sort by author name using explicit field name
+GET /posts?sort=author_name
+
+# Complex query with associations
+GET /posts?filter[author]=john&filter[category]=tech&sort=author_name,-created_at
+```
+
+## API Reference
+
+### Filter Predicates
+
+FetcheableOnApi supports 30+ filter predicates for different data types and use cases:
+
+#### Text Predicates
+- `:ilike` (default) - Case-insensitive partial match (`ILIKE '%value%'`)
+- `:eq` - Exact match (`= 'value'`)
+- `:matches` - Pattern match with SQL wildcards
+- `:does_not_match` - Inverse pattern match
+
+#### Numeric/Date Predicates  
+- `:gt` - Greater than
+- `:gteq` - Greater than or equal
+- `:lt` - Less than
+- `:lteq` - Less than or equal
+- `:between` - Between two values (requires array)
+
+#### Array Predicates
+- `:in` - Value in list
+- `:not_in` - Value not in list
+- `:in_any` - Any value in list
+- `:in_all` - All values in list
+
+#### Custom Predicates
+You can also define custom lambda predicates:
+
+```ruby
+filter_by :full_name, with: ->(collection, value) {
+  collection.arel_table[:first_name].matches("%#{value}%").or(
+    collection.arel_table[:last_name].matches("%#{value}%")
+  )
+}
+```
+
+## Examples
+
+### Real-world API Controller
+
+```ruby
+class API::V1::UsersController < ApplicationController
+  # Basic attribute filters
+  filter_by :email, with: :eq
+  filter_by :name, :username              # Default :ilike predicate
+  filter_by :status, with: :in             # Allow multiple values
+  filter_by :age, with: :gteq             # Numeric comparison
+  filter_by :created_at, with: :between, format: :datetime
+  
+  # Association filters
+  filter_by :company, class_name: Company, as: 'name'
+  filter_by :role, class_name: Role, as: 'name'
+  
+  # Sorting configuration
+  sort_by :name, :username, :email, :created_at, :updated_at
+  sort_by :company, class_name: Company, as: 'name'
+  sort_by :display_name, lower: true      # Case-insensitive sort
+  
+  def index
+    users = apply_fetcheable(
+      User.joins(:company, :role)
+          .includes(:company, :role)
+    )
+    
+    render json: users
+  end
+end
+```
+
+### Example API Requests
+
+```bash
+# Find active users named John from Acme company, sorted by creation date
+GET /api/v1/users?filter[name]=john&filter[status]=active&filter[company]=acme&sort=-created_at
+
+# Users created in the last month, paginated
+GET /api/v1/users?filter[created_at]=1640995200,1643673600&page[number]=1&page[size]=20
+
+# Search users by partial name, case-insensitive sort
+GET /api/v1/users?filter[name]=john&sort=display_name
+```
 
 Imagine the following models called question and answer:
 
