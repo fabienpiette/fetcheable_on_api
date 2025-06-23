@@ -12,13 +12,17 @@ end
 
 class MockCollection
   def except(*args)
-    MockExceptCollection.new
+    MockExceptCollection.new(100)
   end
 end
 
 class MockExceptCollection
+  def initialize(count_value = 100)
+    @count_value = count_value
+  end
+  
   def count
-    100
+    @count_value
   end
 end
 

@@ -194,7 +194,7 @@ class MockErrorCollection
   end
 
   def except(*_args)
-    MockExceptCollection.new
+    MockExceptCollection.new(100)
   end
 
   def count
