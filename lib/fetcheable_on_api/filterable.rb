@@ -248,29 +248,22 @@ module FetcheableOnApi
         if %i[between not_between].include?(predicate)
           if values.is_a?(String)
             # Single range: "start,end"
-            range_values = values.split(',')
-            range_values = apply_format_conversion(range_values, format)
-            predicates(predicate, collection, klass, column_name, range_values)
+            predicates(predicate, collection, klass, column_name, values.split(','))
           else
             # Multiple ranges: ["start1,end1", "start2,end2"] with OR logic
             values.map do |value|
-              range_values = value.split(',')
-              range_values = apply_format_conversion(range_values, format)
-              predicates(predicate, collection, klass, column_name, range_values)
+              predicates(predicate, collection, klass, column_name, value.split(','))
             end.inject(:or)
           end
         elsif values.is_a?(String)
           # Single value or comma-separated values with OR logic
-          split_values = values.split(',')
-          split_values = apply_format_conversion(split_values, format)
-          split_values.map do |value|
+          values.split(',').map do |value|
             predicates(predicate, collection, klass, column_name, value)
           end.inject(:or)
         else
           # Array of values, each potentially comma-separated
-          flat_values = values.map { |el| el.split(',') }.flatten
-          converted_values = apply_format_conversion(flat_values, format)
-          predicates(predicate, collection, klass, column_name, converted_values)
+          values.map! { |el| el.split(',') }
+          predicates(predicate, collection, klass, column_name, values)
         end
       end
 
@@ -400,33 +393,6 @@ module FetcheableOnApi
 
         # Call the custom predicate with collection and value
         predicate.call(collection, value)
-      end
-    end
-
-    # Apply format conversion to values based on the specified format.
-    # This method handles value transformation for different data types,
-    # particularly datetime conversion using the foa_string_to_datetime method.
-    #
-    # @param values [Object] The values to convert (String, Array, etc.)
-    # @param format [Symbol] The format to apply (:string, :array, :datetime)
-    # @return [Object] The converted values
-    # @private
-    def apply_format_conversion(values, format)
-      case format
-      when :datetime
-        if values.is_a?(Array)
-          values.map { |value| foa_string_to_datetime(value.to_s) }
-        elsif values.is_a?(String)
-          foa_string_to_datetime(values)
-        else
-          values
-        end
-      when :array
-        # Array format is handled in parameter parsing, not value conversion
-        values
-      else
-        # :string or any other format - no conversion needed
-        values
       end
     end
 
