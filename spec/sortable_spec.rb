@@ -103,14 +103,14 @@ RSpec.describe FetcheableOnApi::Sortable do
 
     it 'configures simple sorts' do
       MockSortableController.sort_by :name, :email
-      
+
       expect(MockSortableController.sorts_configuration[:name]).to eq(as: :name)
       expect(MockSortableController.sorts_configuration[:email]).to eq(as: :email)
     end
 
     it 'configures sorts with options' do
       MockSortableController.sort_by :name, as: 'full_name', lower: true
-      
+
       expect(MockSortableController.sorts_configuration[:name]).to include(
         as: 'full_name',
         lower: true
@@ -119,7 +119,7 @@ RSpec.describe FetcheableOnApi::Sortable do
 
     it 'configures sorts with class_name for associations' do
       MockSortableController.sort_by :category, class_name: MockCategory, as: 'name'
-      
+
       expect(MockSortableController.sorts_configuration[:category]).to include(
         class_name: MockCategory,
         as: 'name'
@@ -129,7 +129,7 @@ RSpec.describe FetcheableOnApi::Sortable do
     it 'merges options for existing sort configurations' do
       MockSortableController.sort_by :name, as: 'full_name'
       MockSortableController.sort_by :name, lower: true
-      
+
       expect(MockSortableController.sorts_configuration[:name]).to include(
         as: 'full_name',
         lower: true
@@ -139,10 +139,10 @@ RSpec.describe FetcheableOnApi::Sortable do
 
   describe 'SORT_ORDER constant' do
     it 'maps + to asc and - to desc' do
-      expect(FetcheableOnApi::Sortable::SORT_ORDER).to eq({
+      expect(FetcheableOnApi::Sortable::SORT_ORDER).to eq(
         '+' => :asc,
         '-' => :desc
-      })
+      )
     end
   end
 
@@ -241,9 +241,9 @@ RSpec.describe FetcheableOnApi::Sortable do
       end
 
       it 'raises parameter validation error' do
-        expect {
+        expect do
           controller.send(:apply_sort, collection)
-        }.to raise_error(FetcheableOnApi::ArgumentError)
+        end.to raise_error(FetcheableOnApi::ArgumentError)
       end
     end
   end
@@ -251,39 +251,39 @@ RSpec.describe FetcheableOnApi::Sortable do
   describe '#format_params' do
     it 'parses single ascending field' do
       result = controller.send(:format_params, 'name')
-      expect(result).to eq({ name: :asc })
+      expect(result).to eq(name: :asc)
     end
 
     it 'parses single descending field' do
       result = controller.send(:format_params, '-name')
-      expect(result).to eq({ name: :desc })
+      expect(result).to eq(name: :desc)
     end
 
     it 'parses multiple fields' do
       result = controller.send(:format_params, 'name,-created_at,+updated_at')
-      expect(result).to eq({
+      expect(result).to eq(
         name: :asc,
         created_at: :desc,
         updated_at: :asc
-      })
+      )
     end
 
     it 'handles fields with explicit + prefix' do
       result = controller.send(:format_params, '+name')
-      expect(result).to eq({ name: :asc })
+      expect(result).to eq(name: :asc)
     end
 
     it 'handles empty strings' do
       result = controller.send(:format_params, '')
-      expect(result).to eq({ '' => :asc })
+      expect(result).to eq('' => :asc)
     end
 
     it 'handles comma-separated with spaces' do
       result = controller.send(:format_params, 'name, -email')
-      expect(result).to eq({
+      expect(result).to eq(
         name: :asc,
         ' -email': :desc
-      })
+      )
     end
   end
 

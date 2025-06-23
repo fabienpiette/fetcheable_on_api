@@ -14,7 +14,7 @@ module FetcheableOnApi
   #
   # The following pagination information is automatically added to response headers:
   # - `Pagination-Current-Page` - The page number that is returned
-  # - `Pagination-Per` - The number of records included in the page  
+  # - `Pagination-Per` - The number of records included in the page
   # - `Pagination-Total-Pages` - The total number of pages available
   # - `Pagination-Total-Count` - The total number of records available
   #
@@ -26,7 +26,7 @@ module FetcheableOnApi
   #       # Response headers will include pagination info
   #     end
   #   end
-  #   
+  #
   #   # GET /users?page[number]=2&page[size]=10
   #
   # @example With custom default page size
@@ -37,7 +37,7 @@ module FetcheableOnApi
   #
   # @example Response headers
   #   # Pagination-Current-Page: 2
-  #   # Pagination-Per: 10  
+  #   # Pagination-Per: 10
   #   # Pagination-Total-Pages: 15
   #   # Pagination-Total-Count: 150
   #
@@ -69,7 +69,7 @@ module FetcheableOnApi
 
       # Extract pagination values and count total records
       limit, offset, count, page = extract_pagination_informations(collection)
-      
+
       # Set pagination headers for the response
       define_header_pagination(limit, count, page)
 
@@ -88,10 +88,10 @@ module FetcheableOnApi
     # @param page [Integer] Current page number
     # @private
     def define_header_pagination(limit, count, page)
-      response.headers["Pagination-Current-Page"] = page
-      response.headers["Pagination-Per"] = limit
-      response.headers["Pagination-Total-Pages"] = (count.to_f / limit.to_f).ceil
-      response.headers["Pagination-Total-Count"] = count
+      response.headers['Pagination-Current-Page'] = page
+      response.headers['Pagination-Per'] = limit
+      response.headers['Pagination-Total-Pages'] = (count.to_f / limit.to_f).ceil
+      response.headers['Pagination-Total-Count'] = count
     end
 
     # Extract and calculate pagination information from parameters and collection.
@@ -115,10 +115,10 @@ module FetcheableOnApi
 
       # Get page number from parameters or default to 1
       page = params[:page].fetch(:number, 1).to_i
-      
+
       # Calculate offset based on page number and size
       offset = (page - 1) * limit
-      
+
       # Count total records excluding any existing pagination/ordering
       # This ensures we get the total count before any pagination is applied
       count = collection.except(:offset, :limit, :order).count

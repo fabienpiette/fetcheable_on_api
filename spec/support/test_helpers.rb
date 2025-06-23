@@ -10,14 +10,14 @@ module TestHelpers
     end
 
     def require(key)
-      self[key] or raise ActionController::ParameterMissing, key
+      self[key] || raise(ActionController::ParameterMissing, key)
     end
 
     def permit(*keys)
       result = MockParams.new
       keys.each do |key|
         if key.is_a?(Hash)
-          key.each do |k, v|
+          key.each do |k, _v|
             result[k] = self[k] if key?(k)
           end
         else
@@ -46,12 +46,14 @@ module TestHelpers
 end
 
 # Mock ActionController for parameter errors
-module ActionController
-  class ParameterMissing < StandardError; end
-  
-  class Parameters < Hash
-    def self.new(params = {})
-      TestHelpers::MockParams.new(params)
+unless defined?(ActionController)
+  module ActionController
+    class ParameterMissing < StandardError; end
+
+    class Parameters < Hash
+      def self.new(params = {})
+        TestHelpers::MockParams.new(params)
+      end
     end
   end
-end unless defined?(ActionController)
+end

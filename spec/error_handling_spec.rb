@@ -27,26 +27,27 @@ class MockErrorCollection
 
   def joins(association)
     raise ActiveRecord::AssociationNotFoundError, "Association '#{association}' not found" if association == :invalid_association
+
     self
   end
 
-  def where(conditions)
+  def where(_conditions)
     self
   end
 
-  def order(ordering)
+  def order(_ordering)
     self
   end
 
-  def limit(value)
+  def limit(_value)
     self
   end
 
-  def offset(value)
+  def offset(_value)
     self
   end
 
-  def except(*args)
+  def except(*_args)
     self
   end
 
@@ -65,9 +66,9 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
     end
 
     it 'can be raised with custom messages' do
-      expect {
+      expect do
         raise FetcheableOnApi::ArgumentError, 'Custom error message'
-      }.to raise_error(FetcheableOnApi::ArgumentError, 'Custom error message')
+      end.to raise_error(FetcheableOnApi::ArgumentError, 'Custom error message')
     end
   end
 
@@ -77,9 +78,9 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
     end
 
     it 'can be raised with custom messages' do
-      expect {
+      expect do
         raise FetcheableOnApi::NotImplementedError, 'Feature not implemented'
-      }.to raise_error(FetcheableOnApi::NotImplementedError, 'Feature not implemented')
+      end.to raise_error(FetcheableOnApi::NotImplementedError, 'Feature not implemented')
     end
   end
 
@@ -88,26 +89,26 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
       context 'with invalid parameter types' do
         it 'raises ArgumentError for invalid filter type' do
           controller.params = ActionController::Parameters.new(filter: 'string_instead_of_hash')
-          
-          expect {
+
+          expect do
             controller.send(:foa_valid_parameters!, :filter)
-          }.to raise_error(FetcheableOnApi::ArgumentError, /Incorrect type String for params/)
+          end.to raise_error(FetcheableOnApi::ArgumentError, /Incorrect type String for params/)
         end
 
         it 'raises ArgumentError for invalid pagination type' do
           controller.params = ActionController::Parameters.new(page: 'string_instead_of_hash')
-          
-          expect {
+
+          expect do
             controller.send(:foa_valid_parameters!, :page)
-          }.to raise_error(FetcheableOnApi::ArgumentError, /Incorrect type String for params/)
+          end.to raise_error(FetcheableOnApi::ArgumentError, /Incorrect type String for params/)
         end
 
         it 'raises ArgumentError for invalid sort type' do
           controller.params = ActionController::Parameters.new(sort: ['array_instead_of_string'])
-          
-          expect {
+
+          expect do
             controller.send(:foa_valid_parameters!, :sort, foa_permitted_types: [String])
-          }.to raise_error(FetcheableOnApi::ArgumentError, /Incorrect type Array for params/)
+          end.to raise_error(FetcheableOnApi::ArgumentError, /Incorrect type Array for params/)
         end
       end
 
@@ -116,13 +117,13 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
           controller.params = ActionController::Parameters.new(
             filter: { name: { invalid: 'nested_structure' } }
           )
-          
+
           MockErrorController.filter_by :name
-          
+
           # Should not raise error during validation, but may during processing
-          expect {
+          expect do
             controller.send(:foa_valid_parameters!, :filter)
-          }.not_to raise_error
+          end.not_to raise_error
         end
       end
     end
@@ -130,18 +131,18 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
     describe 'custom permitted types' do
       it 'validates against custom permitted types' do
         controller.params = ActionController::Parameters.new(custom_param: 123)
-        
-        expect {
+
+        expect do
           controller.send(:foa_valid_parameters!, :custom_param, foa_permitted_types: [String])
-        }.to raise_error(FetcheableOnApi::ArgumentError)
+        end.to raise_error(FetcheableOnApi::ArgumentError)
       end
 
       it 'accepts valid custom types' do
         controller.params = ActionController::Parameters.new(custom_param: 'valid_string')
-        
-        expect {
+
+        expect do
           controller.send(:foa_valid_parameters!, :custom_param, foa_permitted_types: [String])
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
   end
@@ -155,36 +156,36 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
       it 'raises ArgumentError for unsupported predicate symbols' do
         MockErrorController.filter_by :name, with: :unsupported_predicate
         controller.params = ActionController::Parameters.new(filter: { name: 'test' })
-        
-        expect {
+
+        expect do
           controller.send(:apply_filters, collection)
-        }.to raise_error(ArgumentError, /unsupported predicate `unsupported_predicate`/)
+        end.to raise_error(ArgumentError, /unsupported predicate `unsupported_predicate`/)
       end
 
       it 'accepts lambda predicates without error' do
-        custom_predicate = ->(collection, value) { double('arel_predicate') }
+        custom_predicate = ->(_collection, _value) { double('arel_predicate') }
         MockErrorController.filter_by :name, with: custom_predicate
         controller.params = ActionController::Parameters.new(filter: { name: 'test' })
-        
-        expect {
+
+        expect do
           controller.send(:apply_filters, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
 
     describe 'invalid filter configuration' do
       it 'raises error for invalid filter options' do
-        expect {
+        expect do
           MockErrorController.filter_by :name, invalid_option: 'value'
-        }.to raise_error(ArgumentError)
+        end.to raise_error(ArgumentError)
       end
 
       it 'validates allowed keys in filter_by' do
-        valid_options = [:as, :class_name, :with, :format, :association]
+        valid_options = %i[as class_name with format association]
         valid_options.each do |option|
-          expect {
+          expect do
             MockErrorController.filter_by :name, option => 'value'
-          }.not_to raise_error
+          end.not_to raise_error
         end
       end
     end
@@ -193,7 +194,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
       it 'ignores filters not configured' do
         # Don't configure any filters
         controller.params = ActionController::Parameters.new(filter: { unconfigured: 'value' })
-        
+
         # Should process without error but not apply any filters
         result = controller.send(:apply_filters, collection)
         expect(result).to eq(collection)
@@ -207,26 +208,26 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
 
       it 'handles empty filter values' do
         controller.params = ActionController::Parameters.new(filter: { name: '' })
-        
-        expect {
-          controller.send(:apply_filters, collection)  
-        }.not_to raise_error
+
+        expect do
+          controller.send(:apply_filters, collection)
+        end.not_to raise_error
       end
 
       it 'handles nil filter values' do
         controller.params = ActionController::Parameters.new(filter: { name: nil })
-        
-        expect {
+
+        expect do
           controller.send(:apply_filters, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
 
       it 'handles array filter values when string expected' do
-        controller.params = ActionController::Parameters.new(filter: { name: ['array', 'values'] })
-        
-        expect {
+        controller.params = ActionController::Parameters.new(filter: { name: %w[array values] })
+
+        expect do
           controller.send(:apply_filters, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
   end
@@ -239,7 +240,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
     describe 'invalid sort configurations' do
       it 'ignores unconfigured sort fields' do
         controller.params = ActionController::Parameters.new(sort: 'unconfigured_field')
-        
+
         result = controller.send(:apply_sort, collection)
         expect(result).to eq(collection)
       end
@@ -247,11 +248,11 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
       it 'handles sort fields not present in model' do
         MockErrorController.sort_by :invalid_field
         controller.params = ActionController::Parameters.new(sort: 'invalid_field')
-        
+
         # Should not raise error, just ignore the invalid field
-        expect {
+        expect do
           controller.send(:apply_sort, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
 
@@ -262,40 +263,40 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
 
       it 'handles empty sort parameter' do
         controller.params = ActionController::Parameters.new(sort: '')
-        
-        expect {
+
+        expect do
           controller.send(:apply_sort, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
 
       it 'handles sort parameter with only commas' do
         controller.params = ActionController::Parameters.new(sort: ',,,')
-        
-        expect {
+
+        expect do
           controller.send(:apply_sort, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
 
       it 'handles sort parameter with mixed valid and invalid fields' do
         controller.params = ActionController::Parameters.new(sort: 'name,invalid_field,')
-        
-        expect {
+
+        expect do
           controller.send(:apply_sort, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
 
     describe 'sort parameter format parsing' do
       it 'handles malformed sort direction indicators' do
         result = controller.send(:format_params, '++name,--email')
-        
+
         # Should handle multiple prefix characters
         expect(result.keys).to include(:'+name'.to_sym, :'-email'.to_sym)
       end
 
       it 'handles empty field names' do
         result = controller.send(:format_params, ',+,-')
-        
+
         # Should not crash on empty field names
         expect(result).to be_a(Hash)
       end
@@ -308,7 +309,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         controller.params = ActionController::Parameters.new(
           page: { number: 'invalid', size: 10 }
         )
-        
+
         # to_i on 'invalid' returns 0
         limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
         expect(page).to eq(0)
@@ -319,7 +320,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         controller.params = ActionController::Parameters.new(
           page: { number: 1, size: 'invalid' }
         )
-        
+
         # to_i on 'invalid' returns 0
         limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
         expect(limit).to eq(0)
@@ -329,7 +330,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         controller.params = ActionController::Parameters.new(
           page: { number: -1, size: 10 }
         )
-        
+
         limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
         expect(page).to eq(-1)
         expect(offset).to eq(-20) # (-1 - 1) * 10
@@ -339,10 +340,10 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         controller.params = ActionController::Parameters.new(
           page: { number: 1, size: 0 }
         )
-        
+
         limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
         expect(limit).to eq(0)
-        
+
         # This could cause division by zero in total pages calculation
         controller.send(:define_header_pagination, limit, 100, page)
         # Should handle gracefully without crashing
@@ -364,10 +365,10 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         controller.params = ActionController::Parameters.new(
           page: { number: 1, size: 10 }
         )
-        
-        expect {
+
+        expect do
           controller.send(:extract_pagination_informations, error_collection)
-        }.to raise_error(StandardError, 'Database error')
+        end.to raise_error(StandardError, 'Database error')
       end
     end
   end
@@ -384,27 +385,27 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         sort: { invalid: 'hash' },
         page: 'invalid'
       )
-      
+
       # Should fail on first validation (filters)
-      expect {
+      expect do
         controller.send(:apply_fetcheable, collection)
-      }.to raise_error(FetcheableOnApi::ArgumentError)
+      end.to raise_error(FetcheableOnApi::ArgumentError)
     end
 
     it 'processes partial valid parameters when others are invalid' do
       MockErrorController.sorts_configuration = {}
       MockErrorController.sort_by :name
-      
+
       controller.params = ActionController::Parameters.new(
         filter: { name: 'john' },
         sort: 'invalid_field', # This will be ignored
         page: { number: 1, size: 10 }
       )
-      
+
       # Should process successfully, ignoring invalid sort field
-      expect {
+      expect do
         controller.send(:apply_fetcheable, collection)
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 
@@ -414,7 +415,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         controller.params = ActionController::Parameters.new(
           page: { number: 999_999_999, size: 10 }
         )
-        
+
         limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
         expect(page).to eq(999_999_999)
         expect(offset).to eq(9_999_999_980) # Very large offset
@@ -424,7 +425,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         controller.params = ActionController::Parameters.new(
           page: { number: 1, size: 999_999_999 }
         )
-        
+
         limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
         expect(limit).to eq(999_999_999)
       end
@@ -440,18 +441,18 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         controller.params = ActionController::Parameters.new(
           filter: { name: '测试,тест,🎉' }
         )
-        
-        expect {
+
+        expect do
           controller.send(:apply_filters, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
 
       it 'handles special characters in sort fields' do
         controller.params = ActionController::Parameters.new(sort: 'name,+name,-name')
-        
-        expect {
+
+        expect do
           controller.send(:apply_sort, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
 
@@ -465,10 +466,10 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         controller.params = ActionController::Parameters.new(
           filter: { name: long_string }
         )
-        
-        expect {
+
+        expect do
           controller.send(:apply_filters, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
 
       it 'handles many comma-separated filter values' do
@@ -476,10 +477,10 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         controller.params = ActionController::Parameters.new(
           filter: { name: many_values }
         )
-        
-        expect {
+
+        expect do
           controller.send(:apply_filters, collection)
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
   end

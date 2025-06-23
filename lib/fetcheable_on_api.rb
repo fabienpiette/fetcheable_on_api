@@ -1,12 +1,12 @@
 # frozen_string_literal: true
 
-require "fetcheable_on_api/configuration"
-require "fetcheable_on_api/filterable"
-require "fetcheable_on_api/pageable"
-require "fetcheable_on_api/sortable"
-require "fetcheable_on_api/version"
-require "active_support"
-require "date"
+require 'fetcheable_on_api/configuration'
+require 'fetcheable_on_api/filterable'
+require 'fetcheable_on_api/pageable'
+require 'fetcheable_on_api/sortable'
+require 'fetcheable_on_api/version'
+require 'active_support'
+require 'date'
 
 # FetcheableOnApi provides standardized sorting, filtering and pagination for
 # Rails API controllers following the JSONAPI specification.
@@ -21,7 +21,7 @@ require "date"
 #     # Configure allowed filters and sorts
 #     filter_by :name, :email, :status
 #     sort_by :name, :created_at, :updated_at
-#     
+#
 #     def index
 #       users = apply_fetcheable(User.all)
 #       render json: users
@@ -34,7 +34,7 @@ require "date"
 #     filter_by :author, class_name: User, as: 'name'
 #     sort_by :title, :created_at
 #     sort_by :author, class_name: User, as: 'name'
-#     
+#
 #     def index
 #       posts = apply_fetcheable(Post.joins(:author).includes(:author))
 #       render json: posts
@@ -74,14 +74,14 @@ module FetcheableOnApi
   # Custom exception classes for FetcheableOnApi-specific errors.
   # These inherit from standard Ruby exceptions but allow for more
   # specific error handling in applications using this gem.
-  
+
   # Raised when invalid parameters are provided to filtering, sorting, or pagination
   # @example
   #   raise FetcheableOnApi::ArgumentError, "Invalid filter parameter type"
   ArgumentError = Class.new(ArgumentError)
-  
+
   # Raised when a feature is not yet implemented or supported
-  # @example  
+  # @example
   #   raise FetcheableOnApi::NotImplementedError, "Custom predicate not supported"
   NotImplementedError = Class.new(NotImplementedError)
 
@@ -105,10 +105,10 @@ module FetcheableOnApi
 
   # Apply filters, sorting, and pagination to a collection in sequence.
   # This is the main entry point for processing JSONAPI query parameters.
-  # 
+  #
   # The operations are applied in this specific order:
   # 1. Filtering (apply_filters) - reduces the dataset
-  # 2. Sorting (apply_sort) - orders the results  
+  # 2. Sorting (apply_sort) - orders the results
   # 3. Pagination (apply_pagination) - limits and offsets for page
   #
   # @param collection [ActiveRecord::Relation] The base collection to process
@@ -128,7 +128,7 @@ module FetcheableOnApi
   def apply_fetcheable(collection)
     # Apply filtering first to reduce dataset size
     collection = apply_filters(collection)
-    
+
     # Apply sorting to the filtered results
     collection = apply_sort(collection)
 
@@ -147,7 +147,7 @@ module FetcheableOnApi
   # @example
   #   # Validates that params[:filter] is a Hash or ActionController::Parameters
   #   foa_valid_parameters!(:filter)
-  #   
+  #
   #   # Validates that params[:sort] is a String
   #   foa_valid_parameters!(:sort, foa_permitted_types: [String])
   #
@@ -163,7 +163,7 @@ module FetcheableOnApi
   # Checks if the parameter value at the specified keys matches any of the permitted types.
   #
   # @param keys [Array<Symbol>] Path to the parameter to check
-  # @param foa_permitted_types [Array<Class>] Array of allowed parameter types  
+  # @param foa_permitted_types [Array<Class>] Array of allowed parameter types
   # @return [Boolean] True if the parameter type is valid, false otherwise
   # @private
   def foa_valid_params_types(*keys, foa_permitted_types: foa_default_permitted_types)
@@ -205,7 +205,7 @@ module FetcheableOnApi
   # @example Override in controller for custom date format
   #   class UsersController < ApplicationController
   #     private
-  #     
+  #
   #     def foa_string_to_datetime(string)
   #       DateTime.strptime(string, '%Y-%m-%d %H:%M:%S')
   #     end
@@ -214,7 +214,7 @@ module FetcheableOnApi
   # @example Default usage with epoch timestamps
   #   foa_string_to_datetime('1609459200') # => 2021-01-01 00:00:00 +0000
   def foa_string_to_datetime(string)
-    DateTime.strptime(string, "%s")
+    DateTime.strptime(string, '%s')
   end
 end
 

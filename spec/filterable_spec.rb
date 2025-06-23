@@ -9,7 +9,7 @@ class MockActiveRecord
   end
 
   def self.attribute_names
-    ['id', 'name', 'email', 'created_at', 'category_id']
+    %w[id name email created_at category_id]
   end
 
   def self.arel_table
@@ -23,7 +23,7 @@ class MockCategory
   end
 
   def self.attribute_names
-    ['id', 'name', 'description']
+    %w[id name description]
   end
 
   def self.arel_table
@@ -154,14 +154,14 @@ RSpec.describe FetcheableOnApi::Filterable do
   describe '.filter_by' do
     it 'configures simple filters' do
       MockController.filter_by :name, :email
-      
+
       expect(MockController.filters_configuration[:name]).to eq(as: :name)
       expect(MockController.filters_configuration[:email]).to eq(as: :email)
     end
 
     it 'configures filters with options' do
       MockController.filter_by :name, as: 'full_name', with: :eq
-      
+
       expect(MockController.filters_configuration[:name]).to include(
         as: 'full_name',
         with: :eq
@@ -170,7 +170,7 @@ RSpec.describe FetcheableOnApi::Filterable do
 
     it 'configures filters with class_name for associations' do
       MockController.filter_by :category, class_name: MockCategory, as: 'name'
-      
+
       expect(MockController.filters_configuration[:category]).to include(
         class_name: MockCategory,
         as: 'name'
@@ -178,9 +178,9 @@ RSpec.describe FetcheableOnApi::Filterable do
     end
 
     it 'validates allowed options' do
-      expect {
+      expect do
         MockController.filter_by :name, invalid_option: 'value'
-      }.to raise_error(ArgumentError)
+      end.to raise_error(ArgumentError)
     end
   end
 
@@ -284,7 +284,7 @@ RSpec.describe FetcheableOnApi::Filterable do
 
     context 'with lambda predicate' do
       let(:custom_predicate) do
-        lambda do |collection, value|
+        lambda do |_collection, value|
           MockArelPredicate.new('custom', 'name', value)
         end
       end
@@ -327,7 +327,7 @@ RSpec.describe FetcheableOnApi::Filterable do
     end
 
     it 'handles in predicate with arrays' do
-      result = controller.send(:predicates, :in, collection, klass, column_name, ['1', '2', '3'])
+      result = controller.send(:predicates, :in, collection, klass, column_name, %w[1 2 3])
       expect(result).to be_a(MockArelPredicate)
       expect(result.predicate).to eq('in')
     end
@@ -351,16 +351,16 @@ RSpec.describe FetcheableOnApi::Filterable do
     end
 
     it 'handles custom lambda predicates' do
-      custom_predicate = lambda { |coll, val| MockArelPredicate.new('custom', 'name', val) }
+      custom_predicate = ->(_coll, val) { MockArelPredicate.new('custom', 'name', val) }
       result = controller.send(:predicates, custom_predicate, collection, klass, column_name, 'test')
       expect(result).to be_a(MockArelPredicate)
       expect(result.predicate).to eq('custom')
     end
 
     it 'raises error for unsupported predicates' do
-      expect {
+      expect do
         controller.send(:predicates, :unsupported, collection, klass, column_name, 'value')
-      }.to raise_error(ArgumentError, /unsupported predicate/)
+      end.to raise_error(ArgumentError, /unsupported predicate/)
     end
   end
 
@@ -383,7 +383,7 @@ RSpec.describe FetcheableOnApi::Filterable do
 
       it 'returns hash format for array predicates' do
         keys = controller.send(:valid_keys)
-        expect(keys).to include({tags: []})
+        expect(keys).to include(tags: [])
       end
     end
 
@@ -394,7 +394,7 @@ RSpec.describe FetcheableOnApi::Filterable do
 
       it 'returns hash format for between with array format' do
         keys = controller.send(:valid_keys)
-        expect(keys).to include({date_range: []})
+        expect(keys).to include(date_range: [])
       end
     end
   end
@@ -407,7 +407,7 @@ RSpec.describe FetcheableOnApi::Filterable do
         lt_all lt_any lteq_all lteq_any matches_all matches_any
         not_eq_all not_eq_any not_in_all not_in_any
       ]
-      
+
       expect(FetcheableOnApi::Filterable::PREDICATES_WITH_ARRAY).to match_array(expected_predicates)
     end
   end
@@ -419,18 +419,18 @@ RSpec.describe FetcheableOnApi::Filterable do
 
     it 'validates filter parameter types' do
       controller.params = ActionController::Parameters.new(filter: 'invalid')
-      
-      expect {
+
+      expect do
         controller.send(:apply_filters, collection)
-      }.to raise_error(FetcheableOnApi::ArgumentError)
+      end.to raise_error(FetcheableOnApi::ArgumentError)
     end
 
     it 'accepts valid parameter types' do
       controller.params = ActionController::Parameters.new(filter: { name: 'john' })
-      
-      expect {
+
+      expect do
         controller.send(:apply_filters, collection)
-      }.not_to raise_error
+      end.not_to raise_error
     end
   end
 

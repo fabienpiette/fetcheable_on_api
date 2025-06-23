@@ -19,39 +19,39 @@ module FetcheableOnApi
   # @example Basic sorting setup
   #   class UsersController < ApplicationController
   #     sort_by :name, :email, :created_at
-  #     
+  #
   #     def index
   #       users = apply_fetcheable(User.all)
   #       render json: users
   #     end
   #   end
-  #   
+  #
   #   # GET /users?sort=name,-created_at (name asc, created_at desc)
   #
   # @example Association sorting
   #   class PostsController < ApplicationController
   #     sort_by :title, :created_at
   #     sort_by :author, class_name: User, as: 'name'
-  #     
+  #
   #     def index
   #       posts = apply_fetcheable(Post.joins(:author))
   #       render json: posts
   #     end
   #   end
-  #   
+  #
   #   # GET /posts?sort=author,-created_at (by author name asc, then created_at desc)
   #
   # @example Case-insensitive sorting
   #   class UsersController < ApplicationController
   #     sort_by :name, lower: true  # Sort by lowercase name
   #     sort_by :email, :created_at
-  #     
+  #
   #     def index
   #       users = apply_fetcheable(User.all)
   #       render json: users
   #     end
   #   end
-  #   
+  #
   #   # GET /users?sort=name (sorts by LOWER(users.name))
   #
   # @see https://jsonapi.org/format/#fetching-sorting JSONAPI Sorting Specification
@@ -63,8 +63,8 @@ module FetcheableOnApi
     #   # "+name" or "name" -> :asc (ascending)
     #   # "-name" -> :desc (descending)
     SORT_ORDER = {
-      "+" => :asc,   # Explicit ascending (same as no prefix)
-      "-" => :desc,  # Explicit descending
+      '+' => :asc,   # Explicit ascending (same as no prefix)
+      '-' => :desc,  # Explicit descending
     }.freeze
 
     # Hook called when Sortable is included in a class.
@@ -91,7 +91,7 @@ module FetcheableOnApi
       #
       # @param attrs [Array<Symbol>] List of attribute names to make sortable
       # @param options [Hash] Configuration options for the sorts
-      # @option options [String, Symbol] :as Alias for the database column name 
+      # @option options [String, Symbol] :as Alias for the database column name
       # @option options [Boolean] :lower Whether to sort on the lowercase version of the attribute
       # @option options [Class] :class_name Model class for association sorting (defaults to collection class)
       # @option options [Symbol] :association Association name when different from inferred name
@@ -119,7 +119,7 @@ module FetcheableOnApi
       def sort_by(*attrs)
         options = attrs.extract_options!
         options.symbolize_keys!
-        
+
         # Validate that only supported options are provided
         options.assert_valid_keys(:as, :class_name, :lower, :association)
 
@@ -129,7 +129,7 @@ module FetcheableOnApi
         attrs.each do |attr|
           # Initialize default configuration for this attribute
           sorts_configuration[attr] ||= {
-            as: attr,
+            as: attr
           }
 
           # Merge in the provided options, overriding defaults
@@ -186,13 +186,13 @@ module FetcheableOnApi
 
       klass = class_for(attr_name, collection)
       field = field_for(attr_name)
-      
+
       # Skip if the field doesn't exist on the model
       return unless belong_to_attributes_for?(klass, field)
 
       # Build the Arel attribute reference using the appropriate table
       attribute = klass.arel_table[field]
-      
+
       # Apply lowercase transformation if configured
       attribute = attribute.lower if sorts_configuration[attr_name].fetch(:lower, false)
 
@@ -233,7 +233,7 @@ module FetcheableOnApi
     end
 
     # Parse the sort parameter string into a hash of attributes and directions.
-    # 
+    #
     # This method takes a comma-separated string of sort fields (with optional
     # direction prefixes) and converts it into a hash mapping field names to
     # sort directions.
@@ -244,24 +244,24 @@ module FetcheableOnApi
     # @example
     #   format_params("-email,first_name,+last_name")
     #   # => { email: :desc, first_name: :asc, last_name: :asc }
-    #   
+    #
     #   format_params("name")
     #   # => { name: :asc }
     #
     # @private
     def format_params(params)
       result = {}
-      
+
       params
-        .split(",")                    # Split on commas to get individual fields
+        .split(',') # Split on commas to get individual fields
         .each do |attribute|
         # Extract the direction prefix (+ or -) or default to +
-        sort_sign = attribute =~ /\A[+-]/ ? attribute.slice!(0) : "+"
-        
+        sort_sign = attribute =~ /\A[+-]/ ? attribute.slice!(0) : '+'
+
         # Map the field name to its sort direction
         result[attribute.to_sym] = SORT_ORDER[sort_sign]
       end
-      
+
       result
     end
   end

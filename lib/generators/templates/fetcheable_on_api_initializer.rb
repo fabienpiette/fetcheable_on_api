@@ -1,5 +1,5 @@
 # FetcheableOnApi configuration
-# 
+#
 # This initializer configures the FetcheableOnApi gem settings for your application.
 # These settings affect the behavior of filtering, sorting, and pagination across
 # all controllers that use the FetcheableOnApi module.

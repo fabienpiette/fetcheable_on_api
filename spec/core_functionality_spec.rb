@@ -23,24 +23,24 @@ RSpec.describe 'FetcheableOnApi Core Functionality' do
       test_class = Class.new
       test_class.extend(ActiveSupport::Concern)
       test_class.include(FetcheableOnApi::Filterable)
-      
+
       expect(test_class).to respond_to(:filter_by)
     end
   end
 
   describe 'Sortable module' do
     it 'defines SORT_ORDER constant' do
-      expect(FetcheableOnApi::Sortable::SORT_ORDER).to eq({
+      expect(FetcheableOnApi::Sortable::SORT_ORDER).to eq(
         '+' => :asc,
         '-' => :desc
-      })
+      )
     end
 
     it 'provides sort_by class method when included' do
       test_class = Class.new
       test_class.extend(ActiveSupport::Concern)
       test_class.include(FetcheableOnApi::Sortable)
-      
+
       expect(test_class).to respond_to(:sort_by)
     end
   end
@@ -59,7 +59,7 @@ RSpec.describe 'FetcheableOnApi Core Functionality' do
       FetcheableOnApi.configure do |config|
         config.pagination_default_size = 50
       end
-      
+
       expect(FetcheableOnApi.configuration.pagination_default_size).to eq(50)
     end
 
@@ -84,13 +84,13 @@ RSpec.describe 'FetcheableOnApi Core Functionality' do
     let(:test_class) do
       Class.new do
         include FetcheableOnApi
-        
+
         def test_datetime_conversion(string)
           foa_string_to_datetime(string)
         end
       end
     end
-    
+
     let(:instance) { test_class.new }
 
     it 'converts epoch timestamp to DateTime' do
@@ -117,25 +117,25 @@ RSpec.describe 'FetcheableOnApi Core Functionality' do
       test_class = Class.new do
         include FetcheableOnApi
         attr_accessor :params, :response
-        
+
         def initialize
           @params = TestHelpers::MockParams.new
           @response = double('response', headers: {})
         end
-        
+
         def test_apply_fetcheable(collection)
           apply_fetcheable(collection)
         end
       end
-      
+
       instance = test_class.new
       mock_collection = double('collection')
-      
+
       # Mock the individual apply methods
       allow(instance).to receive(:apply_filters).and_return(mock_collection)
       allow(instance).to receive(:apply_sort).and_return(mock_collection)
       allow(instance).to receive(:apply_pagination).and_return(mock_collection)
-      
+
       result = instance.test_apply_fetcheable(mock_collection)
       expect(result).to eq(mock_collection)
     end

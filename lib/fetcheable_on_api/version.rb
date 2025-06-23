@@ -3,7 +3,7 @@
 module FetcheableOnApi
   # Current version of the FetcheableOnApi gem.
   # Follows semantic versioning (semver.org) principles.
-  # 
+  #
   # @return [String] The version string in format "MAJOR.MINOR.PATCH"
   VERSION = '0.4.1'.freeze
 end

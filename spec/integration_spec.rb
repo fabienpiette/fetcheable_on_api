@@ -56,7 +56,7 @@ class MockIntegrationCollection
     self
   end
 
-  def except(*args)
+  def except(*_args)
     MockExceptCollection.new(@count_value)
   end
 
@@ -161,17 +161,17 @@ RSpec.describe 'FetcheableOnApi Integration' do
 
       it 'applies all three operations in sequence' do
         result = controller.send(:apply_fetcheable, collection)
-        
+
         # Filtering applied
         expect(collection.where_conditions).not_to be_empty
-        
+
         # Sorting applied
         expect(collection.order_applied).not_to be_empty
-        
+
         # Pagination applied
         expect(collection.limit_applied).to eq(15)
         expect(collection.offset_applied).to eq(15)
-        
+
         # Pagination headers set
         headers = controller.response.headers
         expect(headers['Pagination-Current-Page']).to eq(2)
@@ -185,11 +185,11 @@ RSpec.describe 'FetcheableOnApi Integration' do
         MockIntegrationController.filter_by :category_id, with: :in
         MockIntegrationController.sort_by :name, lower: true
         MockIntegrationController.sort_by :created_at
-        
+
         controller.params = ActionController::Parameters.new(
-          filter: { 
-            name: 'john,jane', 
-            category_id: '1,2,3' 
+          filter: {
+            name: 'john,jane',
+            category_id: '1,2,3'
           },
           sort: 'name,-created_at'
         )
@@ -197,7 +197,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
 
       it 'handles complex parameter combinations' do
         result = controller.send(:apply_fetcheable, collection)
-        
+
         expect(collection.where_conditions).not_to be_empty
         expect(collection.order_applied).to have(2).items
       end
@@ -207,7 +207,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
       before do
         MockIntegrationController.filter_by :category, class_name: MockCategory, as: 'name'
         MockIntegrationController.sort_by :category, class_name: MockCategory, as: 'name'
-        
+
         controller.params = ActionController::Parameters.new(
           filter: { category: 'tech' },
           sort: 'category'
@@ -216,7 +216,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
 
       it 'handles association operations' do
         result = controller.send(:apply_fetcheable, collection)
-        
+
         expect(collection.joins_applied).to include(:categories)
         expect(collection.where_conditions).not_to be_empty
         expect(collection.order_applied).not_to be_empty
@@ -238,9 +238,9 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'raises validation error during filtering' do
-        expect {
+        expect do
           controller.send(:apply_fetcheable, collection)
-        }.to raise_error(FetcheableOnApi::ArgumentError)
+        end.to raise_error(FetcheableOnApi::ArgumentError)
       end
     end
 
@@ -252,9 +252,9 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'raises validation error during sorting' do
-        expect {
+        expect do
           controller.send(:apply_fetcheable, collection)
-        }.to raise_error(FetcheableOnApi::ArgumentError)
+        end.to raise_error(FetcheableOnApi::ArgumentError)
       end
     end
 
@@ -266,9 +266,9 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'raises validation error during pagination' do
-        expect {
+        expect do
           controller.send(:apply_fetcheable, collection)
-        }.to raise_error(FetcheableOnApi::ArgumentError)
+        end.to raise_error(FetcheableOnApi::ArgumentError)
       end
     end
   end
@@ -284,7 +284,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
     it 'maintains separate configurations for different controllers' do
       MockIntegrationController.filter_by :name
       MockIntegrationController.sort_by :name
-      
+
       expect(MockIntegrationController.filters_configuration.keys).to include(:name)
       expect(MockChildController.filters_configuration.keys).to include(:email)
       expect(MockChildController.filters_configuration.keys).not_to include(:name)
@@ -295,11 +295,11 @@ RSpec.describe 'FetcheableOnApi Integration' do
     before do
       # Simulate a typical API controller configuration
       MockIntegrationController.filter_by :name, with: :ilike
-      MockIntegrationController.filter_by :email, with: :ilike  
+      MockIntegrationController.filter_by :email, with: :ilike
       MockIntegrationController.filter_by :status, with: :eq
       MockIntegrationController.filter_by :created_at, with: :between
       MockIntegrationController.filter_by :category_id, with: :in
-      
+
       MockIntegrationController.sort_by :name, :email, :created_at, :updated_at
       MockIntegrationController.sort_by :category, class_name: MockCategory, as: 'name'
     end
@@ -319,13 +319,13 @@ RSpec.describe 'FetcheableOnApi Integration' do
 
       it 'processes complete API request correctly' do
         result = controller.send(:apply_fetcheable, collection)
-        
+
         # All operations applied
         expect(collection.where_conditions).not_to be_empty
         expect(collection.order_applied).to have(2).items
         expect(collection.limit_applied).to eq(20)
         expect(collection.offset_applied).to eq(0)
-        
+
         # Headers set
         headers = controller.response.headers
         expect(headers['Pagination-Total-Count']).to eq(100)
@@ -380,13 +380,13 @@ RSpec.describe 'FetcheableOnApi Integration' do
           sort: 'name',
           page: { number: 1 }
         )
-        
+
         # Should not raise errors for valid parameters
-        expect {
+        expect do
           controller.send(:foa_valid_parameters!, :filter)
           controller.send(:foa_valid_parameters!, :sort, foa_permitted_types: [String])
           controller.send(:foa_valid_parameters!, :page)
-        }.not_to raise_error
+        end.not_to raise_error
       end
     end
 

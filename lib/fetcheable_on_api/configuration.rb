@@ -32,7 +32,7 @@ module FetcheableOnApi
     #   # Returns 25 records starting from record 26
     #
     #   # With custom configuration (50):
-    #   # GET /users?page[number]=2  
+    #   # GET /users?page[number]=2
     #   # Returns 50 records starting from record 51
     attr_accessor :pagination_default_size
 

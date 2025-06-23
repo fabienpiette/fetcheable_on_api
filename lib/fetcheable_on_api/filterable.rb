@@ -16,39 +16,39 @@ module FetcheableOnApi
   # @example Basic filtering setup
   #   class UsersController < ApplicationController
   #     filter_by :name, :email, :status
-  #     
+  #
   #     def index
   #       users = apply_fetcheable(User.all)
   #       render json: users
   #     end
   #   end
-  #   
+  #
   #   # GET /users?filter[name]=john&filter[status]=active
   #
   # @example Association filtering
   #   class PostsController < ApplicationController
   #     filter_by :title
   #     filter_by :author, class_name: User, as: 'name'
-  #     
+  #
   #     def index
   #       posts = apply_fetcheable(Post.joins(:author))
-  #       render json: posts  
+  #       render json: posts
   #     end
   #   end
-  #   
+  #
   #   # GET /posts?filter[author]=john&filter[title]=rails
   #
   # @example Custom predicates
   #   class ProductsController < ApplicationController
   #     filter_by :price, with: :gteq  # Greater than or equal
   #     filter_by :created_at, with: :between, format: :datetime
-  #     
+  #
   #     def index
   #       products = apply_fetcheable(Product.all)
   #       render json: products
   #     end
   #   end
-  #   
+  #
   #   # GET /products?filter[price]=100&filter[created_at]=1609459200,1640995200
   #
   # @see https://jsonapi.org/format/#fetching-filtering JSONAPI Filtering Specification
@@ -61,26 +61,26 @@ module FetcheableOnApi
     #   filter_by :tags, with: :in_all
     #   # Expects: filter[tags][]= or filter[tags]=value1,value2
     PREDICATES_WITH_ARRAY = %i[
-      does_not_match_all  # None of the values should match
-      does_not_match_any  # At least one value should not match  
-      eq_all             # All values must equal
-      eq_any             # Any value must equal
-      gt_all             # All values must be greater than
-      gt_any             # Any value must be greater than
-      gteq_all           # All values must be greater than or equal
-      gteq_any           # Any value must be greater than or equal
-      in_all             # Must be in all of the value sets
-      in_any             # Must be in any of the value sets
-      lt_all             # All values must be less than
-      lt_any             # Any value must be less than
-      lteq_all           # All values must be less than or equal
-      lteq_any           # Any value must be less than or equal
-      matches_all        # Must match all patterns
-      matches_any        # Must match any pattern
-      not_eq_all         # Must not equal all values
-      not_eq_any         # Must not equal any value
-      not_in_all         # Must not be in all value sets
-      not_in_any         # Must not be in any value set
+      does_not_match_all # None of the values should match
+      does_not_match_any # At least one value should not match
+      eq_all # All values must equal
+      eq_any # Any value must equal
+      gt_all # All values must be greater than
+      gt_any # Any value must be greater than
+      gteq_all # All values must be greater than or equal
+      gteq_any # Any value must be greater than or equal
+      in_all # Must be in all of the value sets
+      in_any # Must be in any of the value sets
+      lt_all # All values must be less than
+      lt_any # Any value must be less than
+      lteq_all # All values must be less than or equal
+      lteq_any # Any value must be less than or equal
+      matches_all # Must match all patterns
+      matches_any # Must match any pattern
+      not_eq_all # Must not equal all values
+      not_eq_any # Must not equal any value
+      not_in_all # Must not be in all value sets
+      not_in_any # Must not be in any value set
     ].freeze
 
     # Hook called when Filterable is included in a class.
@@ -138,7 +138,7 @@ module FetcheableOnApi
       def filter_by(*attrs)
         options = attrs.extract_options!
         options.symbolize_keys!
-        
+
         # Validate that only supported options are provided
         options.assert_valid_keys(:as, :class_name, :with, :format, :association)
 
@@ -148,7 +148,7 @@ module FetcheableOnApi
         attrs.each do |attr|
           # Initialize default configuration for this attribute
           filters_configuration[attr] ||= {
-            as: options[:as] || attr,
+            as: options[:as] || attr
           }
 
           # Merge in the provided options
@@ -176,10 +176,10 @@ module FetcheableOnApi
         predicate = filters_configuration[key.to_sym].fetch(:with, :ilike)
 
         # Special handling for predicates that work with ranges or arrays
-        if(%i[between not_between in in_all in_any].include?(predicate))
+        if %i[between not_between in in_all in_any].include?(predicate)
           format = filters_configuration[key.to_sym].fetch(:format) { nil }
           # Use array format for explicit array formatting
-          keys[index] = {key => []} if format == :array
+          keys[index] = { key => [] } if format == :array
           next
         end
 
@@ -188,7 +188,7 @@ module FetcheableOnApi
                 PREDICATES_WITH_ARRAY.exclude?(predicate.to_sym)
 
         # Convert to array format for predicates that expect multiple values
-        keys[index] = {key => []}
+        keys[index] = { key => [] }
       end
 
       keys
@@ -242,21 +242,21 @@ module FetcheableOnApi
         if %i[between not_between].include?(predicate)
           if values.is_a?(String)
             # Single range: "start,end"
-            predicates(predicate, collection, klass, column_name, values.split(","))
+            predicates(predicate, collection, klass, column_name, values.split(','))
           else
             # Multiple ranges: ["start1,end1", "start2,end2"] with OR logic
             values.map do |value|
-              predicates(predicate, collection, klass, column_name, value.split(","))
+              predicates(predicate, collection, klass, column_name, value.split(','))
             end.inject(:or)
           end
         elsif values.is_a?(String)
           # Single value or comma-separated values with OR logic
-          values.split(",").map do |value|
+          values.split(',').map do |value|
             predicates(predicate, collection, klass, column_name, value)
           end.inject(:or)
         else
           # Array of values, each potentially comma-separated
-          values.map! { |el| el.split(",") }
+          values.map! { |el| el.split(',') }
           predicates(predicate, collection, klass, column_name, values)
         end
       end
@@ -280,7 +280,7 @@ module FetcheableOnApi
     # @example
     #   # predicates(:eq, collection, User, 'name', 'john')
     #   # Returns: users.name = 'john'
-    #   
+    #
     #   # predicates(:between, collection, User, 'age', [18, 65])
     #   # Returns: users.age BETWEEN 18 AND 65
     #
@@ -292,13 +292,13 @@ module FetcheableOnApi
         klass.arel_table[column_name].between(value.first..value.last)
       when :not_between
         klass.arel_table[column_name].not_between(value.first..value.last)
-        
+
       # Equality predicates - exact matching
       when :eq
         klass.arel_table[column_name].eq(value)
       when :not_eq
         klass.arel_table[column_name].not_eq(value)
-        
+
       # Comparison predicates - numeric/date comparisons
       when :gt
         klass.arel_table[column_name].gt(value)
@@ -308,7 +308,7 @@ module FetcheableOnApi
         klass.arel_table[column_name].lt(value)
       when :lteq
         klass.arel_table[column_name].lteq(value)
-        
+
       # Array inclusion predicates - check if value is in a set
       when :in
         if value.is_a?(Array)
@@ -318,7 +318,7 @@ module FetcheableOnApi
         end
       when :not_in
         klass.arel_table[column_name].not_in(value)
-        
+
       # Pattern matching predicates - for text search
       when :ilike
         # Default predicate - case-insensitive partial matching
@@ -328,7 +328,7 @@ module FetcheableOnApi
         klass.arel_table[column_name].matches(value)
       when :does_not_match
         klass.arel_table[column_name].does_not_match("%#{value}%")
-        
+
       # Array-based predicates (work with multiple values)
       when :eq_all
         klass.arel_table[column_name].eq_all(value)

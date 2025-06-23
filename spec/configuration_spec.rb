@@ -103,7 +103,7 @@ RSpec.describe 'FetcheableOnApi Configuration Integration' do
       FetcheableOnApi.configure do |config|
         config.pagination_default_size = 15
       end
-      
+
       expect(FetcheableOnApi.configuration.pagination_default_size).to eq(15)
     end
 
@@ -111,11 +111,11 @@ RSpec.describe 'FetcheableOnApi Configuration Integration' do
       FetcheableOnApi.configure do |config|
         config.pagination_default_size = 20
       end
-      
+
       FetcheableOnApi.configure do |config|
         config.pagination_default_size = 30
       end
-      
+
       expect(FetcheableOnApi.configuration.pagination_default_size).to eq(30)
     end
 
@@ -123,15 +123,15 @@ RSpec.describe 'FetcheableOnApi Configuration Integration' do
       FetcheableOnApi.configure do |config|
         config.pagination_default_size = 35
       end
-      
+
       # Check that the value persists
       expect(FetcheableOnApi.configuration.pagination_default_size).to eq(35)
-      
+
       # Configure again but don't change the value
       FetcheableOnApi.configure do |config|
         # Don't modify pagination_default_size
       end
-      
+
       # Value should still be the same
       expect(FetcheableOnApi.configuration.pagination_default_size).to eq(35)
     end
@@ -142,7 +142,7 @@ RSpec.describe 'FetcheableOnApi Configuration Integration' do
       Class.new do
         include FetcheableOnApi::Pageable
         attr_accessor :params, :response
-        
+
         def initialize
           @params = ActionController::Parameters.new(page: { number: 1 })
           @response = double('response', headers: {})
@@ -151,10 +151,9 @@ RSpec.describe 'FetcheableOnApi Configuration Integration' do
     end
 
     let(:collection) do
-      double('collection', 
-        except: double('except_collection', count: 100),
-        limit: double('limited_collection', offset: double('result'))
-      )
+      double('collection',
+             except: double('except_collection', count: 100),
+             limit: double('limited_collection', offset: double('result')))
     end
 
     after do
@@ -247,7 +246,7 @@ RSpec.describe 'FetcheableOnApi Configuration Integration' do
     it 'creates configuration lazily' do
       # Clear any existing configuration
       FetcheableOnApi.instance_variable_set(:@configuration, nil)
-      
+
       # First access should create the configuration
       config = FetcheableOnApi.configuration
       expect(config).to be_a(FetcheableOnApi::Configuration)
@@ -257,7 +256,7 @@ RSpec.describe 'FetcheableOnApi Configuration Integration' do
     it 'does not recreate configuration on subsequent accesses' do
       config1 = FetcheableOnApi.configuration
       config1.pagination_default_size = 77
-      
+
       config2 = FetcheableOnApi.configuration
       expect(config2.pagination_default_size).to eq(77)
       expect(config2).to be(config1)
