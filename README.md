@@ -1,8 +1,11 @@
-
-# FetcheableOnApi
-
-[![Gem Version](https://badge.fury.io/rb/fetcheable_on_api.svg)](https://badge.fury.io/rb/fetcheable_on_api)
-[![Documentation](https://img.shields.io/badge/docs-yard-blue.svg)](https://rubydoc.info/gems/fetcheable_on_api)
+<div align="center">
+  <img src="logo.png" alt="FetcheableOnApi Logo" width="200" height="200">
+  
+  # FetcheableOnApi
+  
+  [![Gem Version](https://badge.fury.io/rb/fetcheable_on_api.svg)](https://badge.fury.io/rb/fetcheable_on_api)
+  [![Documentation](https://img.shields.io/badge/docs-yard-blue.svg)](https://rubydoc.info/gems/fetcheable_on_api)
+</div>
 
 FetcheableOnApi is a Ruby gem that provides **filtering**, **sorting**, and **pagination** functionality for Rails API controllers following the [JSONAPI specification](https://jsonapi.org/). It allows you to quickly and easily transform query parameters into ActiveRecord scopes without writing repetitive controller code.
 
