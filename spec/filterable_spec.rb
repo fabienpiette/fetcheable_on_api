@@ -365,6 +365,124 @@ RSpec.describe FetcheableOnApi::Filterable do
       expect(result.predicate).to eq('custom')
     end
 
+    it 'handles not_between predicate' do
+      result = controller.send(:predicates, :not_between, collection, klass, column_name, ['2023-01-01', '2023-12-31'])
+      expect(result).to be_a(MockArelPredicate)
+      expect(result.predicate).to eq('not_between')
+    end
+
+    it 'handles gteq predicate' do
+      result = controller.send(:predicates, :gteq, collection, klass, column_name, '100')
+      expect(result).to be_a(MockArelPredicate)
+      expect(result.predicate).to eq('gteq')
+      expect(result.value).to eq('100')
+    end
+
+    it 'handles lteq predicate' do
+      result = controller.send(:predicates, :lteq, collection, klass, column_name, '100')
+      expect(result).to be_a(MockArelPredicate)
+      expect(result.predicate).to eq('lteq')
+      expect(result.value).to eq('100')
+    end
+
+    it 'handles not_in predicate' do
+      result = controller.send(:predicates, :not_in, collection, klass, column_name, %w[a b])
+      expect(result).to be_a(MockArelPredicate)
+      expect(result.predicate).to eq('not_in')
+    end
+
+    it 'handles matches predicate' do
+      result = controller.send(:predicates, :matches, collection, klass, column_name, '%john%')
+      expect(result).to be_a(MockArelPredicate)
+      expect(result.predicate).to eq('matches')
+      expect(result.value).to eq('%john%')
+    end
+
+    it 'handles does_not_match predicate' do
+      result = controller.send(:predicates, :does_not_match, collection, klass, column_name, 'john')
+      expect(result).to be_a(MockArelPredicate)
+      expect(result.predicate).to eq('does_not_match')
+      expect(result.value).to eq('%john%')
+    end
+
+    context 'with array predicates' do
+      {
+        eq_all: %w[a b],
+        eq_any: %w[a b],
+        gt_all: %w[1 2],
+        gt_any: %w[1 2],
+        gteq_all: %w[1 2],
+        gteq_any: %w[1 2],
+        lt_all: %w[1 2],
+        lt_any: %w[1 2],
+        lteq_all: %w[1 2],
+        lteq_any: %w[1 2],
+        not_eq_all: %w[a b],
+        not_eq_any: %w[a b],
+        not_in_all: %w[a b],
+        not_in_any: %w[a b],
+        matches_all: %w[%a% %b%],
+        matches_any: %w[%a% %b%],
+        does_not_match_all: %w[%a% %b%],
+        does_not_match_any: %w[%a% %b%],
+      }.each do |pred, test_value|
+        it "handles #{pred} predicate" do
+          result = controller.send(:predicates, pred, collection, klass, column_name, test_value)
+          expect(result).to be_a(MockArelPredicate)
+          expect(result.predicate).to eq(pred.to_s)
+          expect(result.value).to eq(test_value)
+        end
+      end
+    end
+
+    context 'with :in array branch' do
+      it 'handles :in with Array input (flatten/compact/uniq)' do
+        result = controller.send(:predicates, :in, collection, klass, column_name, [%w[1 2], nil, '1'])
+        expect(result).to be_a(MockArelPredicate)
+        expect(result.predicate).to eq('in')
+        expect(result.value).to eq(%w[1 2])
+      end
+
+      it 'handles :in with non-Array input' do
+        result = controller.send(:predicates, :in, collection, klass, column_name, '42')
+        expect(result).to be_a(MockArelPredicate)
+        expect(result.predicate).to eq('in')
+        expect(result.value).to eq('42')
+      end
+    end
+
+    context 'with :in_all array branch' do
+      it 'handles :in_all with Array input (flatten/compact/uniq)' do
+        result = controller.send(:predicates, :in_all, collection, klass, column_name, [%w[a b], nil, 'a'])
+        expect(result).to be_a(MockArelPredicate)
+        expect(result.predicate).to eq('in_all')
+        expect(result.value).to eq(%w[a b])
+      end
+
+      it 'handles :in_all with non-Array input' do
+        result = controller.send(:predicates, :in_all, collection, klass, column_name, '42')
+        expect(result).to be_a(MockArelPredicate)
+        expect(result.predicate).to eq('in_all')
+        expect(result.value).to eq('42')
+      end
+    end
+
+    context 'with :in_any array branch' do
+      it 'handles :in_any with Array input (flatten/compact/uniq)' do
+        result = controller.send(:predicates, :in_any, collection, klass, column_name, [%w[x y], nil, 'x'])
+        expect(result).to be_a(MockArelPredicate)
+        expect(result.predicate).to eq('in_any')
+        expect(result.value).to eq(%w[x y])
+      end
+
+      it 'handles :in_any with non-Array input' do
+        result = controller.send(:predicates, :in_any, collection, klass, column_name, '42')
+        expect(result).to be_a(MockArelPredicate)
+        expect(result.predicate).to eq('in_any')
+        expect(result.value).to eq('42')
+      end
+    end
+
     it 'raises error for unsupported predicates' do
       expect do
         controller.send(:predicates, :unsupported, collection, klass, column_name, 'value')
