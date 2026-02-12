@@ -767,6 +767,32 @@ RSpec.describe FetcheableOnApi::Filterable do
         result = controller.send(:apply_format_conversion, 'test_value', :unknown)
         expect(result).to eq('test_value')
       end
+
+      it 'returns non-String/non-Array datetime input unchanged (else branch)' do
+        result = controller.send(:apply_format_conversion, 12345, :datetime)
+        expect(result).to eq(12345)
+      end
+
+      it 'returns nil datetime input unchanged' do
+        result = controller.send(:apply_format_conversion, nil, :datetime)
+        expect(result).to be_nil
+      end
+    end
+  end
+
+  describe '#apply_filters with :association option' do
+    before do
+      MockController.filters_configuration = {}
+      MockController.filter_by :category, class_name: MockCategory, as: 'name', association: :custom_author
+      controller.params = ActionController::Parameters.new(
+        filter: { category: 'tech' }
+      )
+    end
+
+    it 'joins on the specified association instead of the inferred table name' do
+      result = controller.send(:apply_filters, collection)
+      expect(collection.joins_applied).to include(:custom_author)
+      expect(collection.joins_applied).not_to include(:categories)
     end
   end
 end
