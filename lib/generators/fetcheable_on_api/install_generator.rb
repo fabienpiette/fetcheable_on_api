@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module FetcheableOnApi
   module Generators
     # Rails generator for creating FetcheableOnApi initializer file.

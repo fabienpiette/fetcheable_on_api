@@ -63,8 +63,8 @@ module FetcheableOnApi
     #   # "+name" or "name" -> :asc (ascending)
     #   # "-name" -> :desc (descending)
     SORT_ORDER = {
-      '+' => :asc,   # Explicit ascending (same as no prefix)
-      '-' => :desc,  # Explicit descending
+      '+' => :asc, # Explicit ascending (same as no prefix)
+      '-' => :desc # Explicit descending
     }.freeze
 
     # Hook called when Sortable is included in a class.
@@ -76,6 +76,7 @@ module FetcheableOnApi
     def self.included(base)
       base.class_eval do
         extend ClassMethods
+
         # Store sort configurations per class to avoid conflicts between controllers
         class_attribute :sorts_configuration, instance_writer: false
         self.sorts_configuration = {}
@@ -258,14 +259,14 @@ module FetcheableOnApi
       params
         .split(',') # Split on commas to get individual fields
         .each do |attribute|
-        # Trim whitespace
-        attribute = attribute.strip
-        
-        # Extract the direction prefix (+ or -) or default to +
-        sort_sign = attribute =~ /\A[+-]/ ? attribute.slice!(0) : '+'
+          # Trim whitespace
+          attribute = attribute.strip
 
-        # Map the field name to its sort direction
-        result[attribute.to_sym] = SORT_ORDER[sort_sign]
+          # Extract the direction prefix (+ or -) or default to +
+          sort_sign = attribute =~ /\A[+-]/ ? attribute.slice!(0) : '+'
+
+          # Map the field name to its sort direction
+          result[attribute.to_sym] = SORT_ORDER[sort_sign]
       end
 
       result

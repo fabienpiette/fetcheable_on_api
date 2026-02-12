@@ -5,5 +5,5 @@ module FetcheableOnApi
   # Follows semantic versioning (semver.org) principles.
   #
   # @return [String] The version string in format "MAJOR.MINOR.PATCH"
-  VERSION = '0.6.1'.freeze
+  VERSION = '0.6.1'
 end

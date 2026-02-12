@@ -5,7 +5,7 @@ require 'spec_helper'
 # Mock classes for error handling testing
 class MockResponse
   attr_accessor :headers
-  
+
   def initialize
     @headers = {}
   end
@@ -18,11 +18,9 @@ class MockExceptCollection
   end
 
   def count
-    if @should_error
-      raise StandardError, 'Database error'
-    else
-      @count_value
-    end
+    raise StandardError, 'Database error' if @should_error
+
+    @count_value
   end
 end
 
@@ -45,7 +43,7 @@ class MockCategory
     'categories'
   end
 
-  def self.attribute_names  
+  def self.attribute_names
     %w[id name description]
   end
 
@@ -150,6 +148,7 @@ class MockClassName
     @klass
   end
 end
+
 class MockErrorController
   include FetcheableOnApi
 
@@ -173,7 +172,10 @@ class MockErrorCollection
   end
 
   def joins(association)
-    raise ActiveRecord::AssociationNotFoundError, "Association '#{association}' not found" if association == :invalid_association
+    if association == :invalid_association
+      raise ActiveRecord::AssociationNotFoundError,
+            "Association '#{association}' not found"
+    end
 
     self
   end
@@ -438,7 +440,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         result = controller.send(:format_params, '++name,--email')
 
         # Should handle multiple prefix characters
-        expect(result.keys).to include(:'+name'.to_sym, :'-email'.to_sym)
+        expect(result.keys).to include(:'+name', :'-email')
       end
 
       it 'handles empty field names' do
@@ -458,7 +460,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         )
 
         # to_i on 'invalid' returns 0
-        limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+        _, offset, _, page = controller.send(:extract_pagination_informations, collection)
         expect(page).to eq(0)
         expect(offset).to eq(-10) # (0 - 1) * 10
       end
@@ -469,7 +471,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
         )
 
         # to_i on 'invalid' returns 0
-        limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+        limit, = controller.send(:extract_pagination_informations, collection)
         expect(limit).to eq(0)
       end
 
@@ -478,7 +480,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
           page: { number: -1, size: 10 }
         )
 
-        limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+        _, offset, _, page = controller.send(:extract_pagination_informations, collection)
         expect(page).to eq(-1)
         expect(offset).to eq(-20) # (-1 - 1) * 10
       end
@@ -488,7 +490,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
           page: { number: 1, size: 0 }
         )
 
-        limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+        limit, _, _, page = controller.send(:extract_pagination_informations, collection)
         expect(limit).to eq(0)
 
         # This could cause division by zero in total pages calculation
@@ -501,7 +503,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
       let(:error_collection) do
         MockErrorCollection.new.tap do |coll|
           def coll.except(*_args)
-            MockExceptCollection.new(100, true)  # Pass count and error flag
+            MockExceptCollection.new(100, true) # Pass count and error flag
           end
         end
       end
@@ -561,7 +563,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
           page: { number: 999_999_999, size: 10 }
         )
 
-        limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+        _, offset, _, page = controller.send(:extract_pagination_informations, collection)
         expect(page).to eq(999_999_999)
         expect(offset).to eq(9_999_999_980) # Very large offset
       end
@@ -571,7 +573,7 @@ RSpec.describe 'FetcheableOnApi Error Handling' do
           page: { number: 1, size: 999_999_999 }
         )
 
-        limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+        limit, = controller.send(:extract_pagination_informations, collection)
         expect(limit).to eq(999_999_999)
       end
     end

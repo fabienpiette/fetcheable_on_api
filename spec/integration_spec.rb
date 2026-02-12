@@ -30,7 +30,7 @@ class MockCategory
     'categories'
   end
 
-  def self.attribute_names  
+  def self.attribute_names
     %w[id name description]
   end
 
@@ -142,7 +142,7 @@ class MockSortOrder
 
   def initialize(column, direction, lower: false)
     @column = column
-    @direction = direction  
+    @direction = direction
     @lower = lower
   end
 end
@@ -154,11 +154,9 @@ class MockExceptCollection
   end
 
   def count
-    if @should_error
-      raise StandardError, 'Database error'
-    else
-      @count_value
-    end
+    raise StandardError, 'Database error' if @should_error
+
+    @count_value
   end
 end
 
@@ -278,7 +276,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'applies only filtering' do
-        result = controller.send(:apply_fetcheable, collection)
+        controller.send(:apply_fetcheable, collection)
         expect(collection.where_conditions).not_to be_empty
         expect(collection.order_applied).to be_empty
         expect(collection.limit_applied).to be_nil
@@ -294,7 +292,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'applies only sorting' do
-        result = controller.send(:apply_fetcheable, collection)
+        controller.send(:apply_fetcheable, collection)
         expect(collection.where_conditions).to be_empty
         expect(collection.order_applied).not_to be_empty
         expect(collection.limit_applied).to be_nil
@@ -309,7 +307,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'applies only pagination' do
-        result = controller.send(:apply_fetcheable, collection)
+        controller.send(:apply_fetcheable, collection)
         expect(collection.where_conditions).to be_empty
         expect(collection.order_applied).to be_empty
         expect(collection.limit_applied).to eq(10)
@@ -329,7 +327,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'applies all three operations in sequence' do
-        result = controller.send(:apply_fetcheable, collection)
+        controller.send(:apply_fetcheable, collection)
 
         # Filtering applied
         expect(collection.where_conditions).not_to be_empty
@@ -365,7 +363,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'handles complex parameter combinations' do
-        result = controller.send(:apply_fetcheable, collection)
+        controller.send(:apply_fetcheable, collection)
 
         expect(collection.where_conditions).not_to be_empty
         expect(collection.order_applied).to be_an(Array)
@@ -385,7 +383,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'handles association operations' do
-        result = controller.send(:apply_fetcheable, collection)
+        controller.send(:apply_fetcheable, collection)
 
         expect(collection.joins_applied).to include(:categories)
         expect(collection.where_conditions).not_to be_empty
@@ -488,7 +486,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'processes complete API request correctly' do
-        result = controller.send(:apply_fetcheable, collection)
+        controller.send(:apply_fetcheable, collection)
 
         # All operations applied
         expect(collection.where_conditions).not_to be_empty
@@ -516,7 +514,7 @@ RSpec.describe 'FetcheableOnApi Integration' do
       end
 
       it 'handles multiple OR conditions across different fields' do
-        result = controller.send(:apply_fetcheable, collection)
+        controller.send(:apply_fetcheable, collection)
         expect(collection.where_conditions).not_to be_empty
         expect(collection.order_applied).not_to be_empty
       end

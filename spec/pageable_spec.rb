@@ -83,11 +83,9 @@ class MockExceptCollection
   end
 
   def count
-    if @should_error
-      raise StandardError, 'Database error'
-    else
-      @count_value
-    end
+    raise StandardError, 'Database error' if @should_error
+
+    @count_value
   end
 end
 
@@ -120,7 +118,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'applies limit and offset' do
-        result = controller.send(:apply_pagination, collection)
+        controller.send(:apply_pagination, collection)
         expect(collection.limit_applied).to eq(10)
         expect(collection.offset_applied).to eq(10) # (page 2 - 1) * 10
       end
@@ -144,7 +142,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'uses default pagination size from configuration' do
-        result = controller.send(:apply_pagination, collection)
+        controller.send(:apply_pagination, collection)
         expect(collection.limit_applied).to eq(FetcheableOnApi.configuration.pagination_default_size)
       end
     end
@@ -157,7 +155,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'applies zero offset for first page' do
-        result = controller.send(:apply_pagination, collection)
+        controller.send(:apply_pagination, collection)
         expect(collection.offset_applied).to eq(0)
       end
 
@@ -197,7 +195,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'converts string parameters to integers' do
-        result = controller.send(:apply_pagination, collection)
+        controller.send(:apply_pagination, collection)
         expect(collection.limit_applied).to eq(15)
         expect(collection.offset_applied).to eq(30) # (3 - 1) * 15
       end
@@ -244,7 +242,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'uses default size from configuration' do
-        limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+        limit, offset, = controller.send(:extract_pagination_informations, collection)
 
         expect(limit).to eq(FetcheableOnApi.configuration.pagination_default_size)
         expect(offset).to eq(FetcheableOnApi.configuration.pagination_default_size) # (2 - 1) * default_size
@@ -259,7 +257,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'defaults to page 1' do
-        limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+        _, offset, _, page = controller.send(:extract_pagination_informations, collection)
 
         expect(page).to eq(1)
         expect(offset).to eq(0) # (1 - 1) * 15
@@ -274,7 +272,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'handles zero page number' do
-        limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+        _, offset, _, page = controller.send(:extract_pagination_informations, collection)
 
         expect(page).to eq(0)
         expect(offset).to eq(-10) # (0 - 1) * 10
@@ -289,7 +287,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'handles large page numbers' do
-        limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+        _, offset, _, page = controller.send(:extract_pagination_informations, collection)
 
         expect(page).to eq(1000)
         expect(offset).to eq(9990) # (1000 - 1) * 10
@@ -367,7 +365,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'handles empty collections' do
-        result = controller.send(:apply_pagination, collection)
+        controller.send(:apply_pagination, collection)
         headers = controller.response.headers
 
         expect(headers['Pagination-Total-Count']).to eq(0)
@@ -383,7 +381,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'handles page size of 1' do
-        result = controller.send(:apply_pagination, collection)
+        controller.send(:apply_pagination, collection)
         headers = controller.response.headers
 
         expect(headers['Pagination-Per']).to eq(1)
@@ -399,7 +397,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'handles very large page sizes' do
-        result = controller.send(:apply_pagination, collection)
+        controller.send(:apply_pagination, collection)
         headers = controller.response.headers
 
         expect(headers['Pagination-Per']).to eq(1000)
@@ -411,7 +409,7 @@ RSpec.describe FetcheableOnApi::Pageable do
   describe 'integration with configuration' do
     context 'when configuration pagination_default_size is changed' do
       let(:original_size) { FetcheableOnApi.configuration.pagination_default_size }
-      
+
       before do
         FetcheableOnApi.configuration.pagination_default_size = 50
 
@@ -425,7 +423,7 @@ RSpec.describe FetcheableOnApi::Pageable do
       end
 
       it 'uses the updated default size' do
-        result = controller.send(:apply_pagination, collection)
+        controller.send(:apply_pagination, collection)
         expect(collection.limit_applied).to eq(50)
       end
     end

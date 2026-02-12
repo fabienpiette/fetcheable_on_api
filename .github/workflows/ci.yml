@@ -1,27 +1,97 @@
 name: CI
 
-on: [push]
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+          bundler-cache: true
+
+      - name: Run RuboCop
+        run: bundle exec rubocop
+
   test:
     runs-on: ubuntu-latest
-    
+
     strategy:
+      fail-fast: false
       matrix:
-        ruby-version: ['2.7', '3.0']
-    
+        include:
+          # Ruby 2.7
+          - ruby-version: '2.7'
+            gemfile: gemfiles/rails_5.2.gemfile
+          - ruby-version: '2.7'
+            gemfile: gemfiles/rails_7.0.gemfile
+          - ruby-version: '2.7'
+            gemfile: gemfiles/rails_7.1.gemfile
+
+          # Ruby 3.0
+          - ruby-version: '3.0'
+            gemfile: gemfiles/rails_5.2.gemfile
+          - ruby-version: '3.0'
+            gemfile: gemfiles/rails_7.0.gemfile
+          - ruby-version: '3.0'
+            gemfile: gemfiles/rails_7.1.gemfile
+
+          # Ruby 3.1
+          - ruby-version: '3.1'
+            gemfile: gemfiles/rails_7.0.gemfile
+          - ruby-version: '3.1'
+            gemfile: gemfiles/rails_7.1.gemfile
+          - ruby-version: '3.1'
+            gemfile: gemfiles/rails_7.2.gemfile
+
+          # Ruby 3.2
+          - ruby-version: '3.2'
+            gemfile: gemfiles/rails_7.0.gemfile
+          - ruby-version: '3.2'
+            gemfile: gemfiles/rails_7.1.gemfile
+          - ruby-version: '3.2'
+            gemfile: gemfiles/rails_7.2.gemfile
+          - ruby-version: '3.2'
+            gemfile: gemfiles/rails_8.0.gemfile
+
+          # Ruby 3.3
+          - ruby-version: '3.3'
+            gemfile: gemfiles/rails_7.1.gemfile
+          - ruby-version: '3.3'
+            gemfile: gemfiles/rails_7.2.gemfile
+          - ruby-version: '3.3'
+            gemfile: gemfiles/rails_8.0.gemfile
+
+          # Ruby 3.4
+          - ruby-version: '3.4'
+            gemfile: gemfiles/rails_8.0.gemfile
+
+    env:
+      BUNDLE_GEMFILE: ${{ matrix.gemfile }}
+
     steps:
-    - uses: actions/checkout@v4
-    
-    - name: Set up Ruby ${{ matrix.ruby-version }}
-      uses: ruby/setup-ruby@v1
-      with:
-        ruby-version: ${{ matrix.ruby-version }}
-        bundler-cache: true
-    
-    - name: Run tests
-      run: bundle exec rspec
-    
-    - name: Run RuboCop
-      run: bundle exec rubocop
-      continue-on-error: true
+      - uses: actions/checkout@v4
+
+      - name: Set up Ruby ${{ matrix.ruby-version }}
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: ${{ matrix.ruby-version }}
+          bundler-cache: true
+
+      - name: Run tests
+        run: bundle exec rspec
+
+      - name: Upload coverage
+        if: matrix.ruby-version == '3.4' && matrix.gemfile == 'gemfiles/rails_8.0.gemfile'
+        uses: actions/upload-artifact@v4
+        with:
+          name: coverage
+          path: coverage/

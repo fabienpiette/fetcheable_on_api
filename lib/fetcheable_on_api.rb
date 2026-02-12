@@ -78,12 +78,14 @@ module FetcheableOnApi
   # Raised when invalid parameters are provided to filtering, sorting, or pagination
   # @example
   #   raise FetcheableOnApi::ArgumentError, "Invalid filter parameter type"
-  ArgumentError = Class.new(ArgumentError)
+  class ArgumentError < ArgumentError
+  end
 
   # Raised when a feature is not yet implemented or supported
   # @example
   #   raise FetcheableOnApi::NotImplementedError, "Custom predicate not supported"
-  NotImplementedError = Class.new(NotImplementedError)
+  class NotImplementedError < NotImplementedError
+  end
 
   # Hook called when this module is included in a class.
   # Automatically includes the three main concern modules that provide
