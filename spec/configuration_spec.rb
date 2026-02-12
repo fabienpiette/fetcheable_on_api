@@ -4,14 +4,14 @@ require 'spec_helper'
 
 class MockResponse
   attr_accessor :headers
-  
+
   def initialize
     @headers = {}
   end
 end
 
 class MockCollection
-  def except(*args)
+  def except(*_args)
     MockExceptCollection.new(100)
   end
 end
@@ -20,7 +20,7 @@ class MockExceptCollection
   def initialize(count_value = 100)
     @count_value = count_value
   end
-  
+
   def count
     @count_value
   end
@@ -36,7 +36,7 @@ class MockResult
 end
 
 RSpec.describe FetcheableOnApi::Configuration do
-  let(:configuration) { FetcheableOnApi::Configuration.new }
+  let(:configuration) { described_class.new }
 
   describe '#initialize' do
     it 'sets default pagination_default_size to 25' do
@@ -174,6 +174,7 @@ RSpec.describe 'FetcheableOnApi Configuration Integration' do
     let(:controller) do
       Class.new do
         include FetcheableOnApi
+
         attr_accessor :params, :response
 
         def initialize
@@ -201,7 +202,7 @@ RSpec.describe 'FetcheableOnApi Configuration Integration' do
         config.pagination_default_size = 40
       end
 
-      limit, offset, count, page = controller.send(:extract_pagination_informations, collection)
+      limit, = controller.send(:extract_pagination_informations, collection)
       expect(limit).to eq(40)
     end
 

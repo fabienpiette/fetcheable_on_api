@@ -4,7 +4,7 @@ require 'spec_helper'
 
 class MockResponse
   attr_accessor :headers
-  
+
   def initialize
     @headers = {}
   end
@@ -18,7 +18,7 @@ RSpec.describe 'FetcheableOnApi Core Functionality' do
     it 'includes all required modules when included in a class' do
       test_class = Class.new
       test_class.include(FetcheableOnApi)
-      
+
       expect(test_class.included_modules).to include(
         FetcheableOnApi::Filterable,
         FetcheableOnApi::Sortable,
@@ -130,6 +130,7 @@ RSpec.describe 'FetcheableOnApi Core Functionality' do
     it 'provides apply_fetcheable method when included' do
       test_class = Class.new do
         include FetcheableOnApi
+
         attr_accessor :params, :response
 
         def initialize
@@ -146,9 +147,8 @@ RSpec.describe 'FetcheableOnApi Core Functionality' do
       mock_collection = MockCollection.new
 
       # Mock the individual apply methods
-      allow(instance).to receive(:apply_filters).and_return(mock_collection)
-      allow(instance).to receive(:apply_sort).and_return(mock_collection)
-      allow(instance).to receive(:apply_pagination).and_return(mock_collection)
+      allow(instance).to receive_messages(apply_filters: mock_collection, apply_sort: mock_collection,
+                                          apply_pagination: mock_collection)
 
       result = instance.test_apply_fetcheable(mock_collection)
       expect(result).to eq(mock_collection)

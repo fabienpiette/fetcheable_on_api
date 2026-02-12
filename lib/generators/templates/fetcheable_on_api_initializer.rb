@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # FetcheableOnApi configuration
 #
 # This initializer configures the FetcheableOnApi gem settings for your application.

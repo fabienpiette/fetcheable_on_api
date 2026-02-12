@@ -214,7 +214,7 @@ RSpec.describe FetcheableOnApi::Filterable do
       end
 
       it 'applies ilike filter by default' do
-        result = controller.send(:apply_filters, collection)
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
     end
@@ -228,7 +228,7 @@ RSpec.describe FetcheableOnApi::Filterable do
       end
 
       it 'splits comma-separated values and applies OR logic' do
-        result = controller.send(:apply_filters, collection)
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
     end
@@ -242,7 +242,7 @@ RSpec.describe FetcheableOnApi::Filterable do
       end
 
       it 'applies exact match filter' do
-        result = controller.send(:apply_filters, collection)
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
     end
@@ -256,7 +256,7 @@ RSpec.describe FetcheableOnApi::Filterable do
       end
 
       it 'applies between filter with date range' do
-        result = controller.send(:apply_filters, collection)
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
     end
@@ -270,7 +270,7 @@ RSpec.describe FetcheableOnApi::Filterable do
       end
 
       it 'applies in filter with multiple values' do
-        result = controller.send(:apply_filters, collection)
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
     end
@@ -284,7 +284,7 @@ RSpec.describe FetcheableOnApi::Filterable do
       end
 
       it 'joins the association and applies filter' do
-        result = controller.send(:apply_filters, collection)
+        controller.send(:apply_filters, collection)
         expect(collection.joins_applied).to include(:categories)
         expect(collection.where_conditions).not_to be_empty
       end
@@ -305,7 +305,7 @@ RSpec.describe FetcheableOnApi::Filterable do
       end
 
       it 'applies custom lambda predicate' do
-        result = controller.send(:apply_filters, collection)
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
     end
@@ -316,7 +316,7 @@ RSpec.describe FetcheableOnApi::Filterable do
     let(:column_name) { 'name' }
 
     it 'handles between predicate' do
-      result = controller.send(:predicates, :between, collection, klass, column_name, ['2023-01-01', '2023-12-31'])
+      result = controller.send(:predicates, :between, collection, klass, column_name, %w[2023-01-01 2023-12-31])
       expect(result).to be_a(MockArelPredicate)
       expect(result.predicate).to eq('between')
     end
@@ -366,7 +366,7 @@ RSpec.describe FetcheableOnApi::Filterable do
     end
 
     it 'handles not_between predicate' do
-      result = controller.send(:predicates, :not_between, collection, klass, column_name, ['2023-01-01', '2023-12-31'])
+      result = controller.send(:predicates, :not_between, collection, klass, column_name, %w[2023-01-01 2023-12-31])
       expect(result).to be_a(MockArelPredicate)
       expect(result.predicate).to eq('not_between')
     end
@@ -424,7 +424,7 @@ RSpec.describe FetcheableOnApi::Filterable do
         matches_all: %w[%a% %b%],
         matches_any: %w[%a% %b%],
         does_not_match_all: %w[%a% %b%],
-        does_not_match_any: %w[%a% %b%],
+        does_not_match_any: %w[%a% %b%]
       }.each do |pred, test_value|
         it "handles #{pred} predicate" do
           result = controller.send(:predicates, pred, collection, klass, column_name, test_value)
@@ -649,30 +649,30 @@ RSpec.describe FetcheableOnApi::Filterable do
 
       it 'converts string timestamps to DateTime objects for single values' do
         controller.params = ActionController::Parameters.new(filter: { created_at: '1609459200' })
-        
+
         expect(controller).to receive(:foa_string_to_datetime).with('1609459200').and_return(DateTime.new(2021, 1, 1))
-        
-        result = controller.send(:apply_filters, collection)
+
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
 
       it 'converts comma-separated timestamps for multiple values' do
         controller.params = ActionController::Parameters.new(filter: { created_at: '1609459200,1640995200' })
-        
+
         expect(controller).to receive(:foa_string_to_datetime).with('1609459200').and_return(DateTime.new(2021, 1, 1))
         expect(controller).to receive(:foa_string_to_datetime).with('1640995200').and_return(DateTime.new(2022, 1, 1))
-        
-        result = controller.send(:apply_filters, collection)
+
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
 
       it 'converts array of timestamps' do
-        controller.params = ActionController::Parameters.new(filter: { created_at: ['1609459200', '1640995200'] })
-        
+        controller.params = ActionController::Parameters.new(filter: { created_at: %w[1609459200 1640995200] })
+
         expect(controller).to receive(:foa_string_to_datetime).with('1609459200').and_return(DateTime.new(2021, 1, 1))
         expect(controller).to receive(:foa_string_to_datetime).with('1640995200').and_return(DateTime.new(2022, 1, 1))
-        
-        result = controller.send(:apply_filters, collection)
+
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
 
@@ -684,20 +684,21 @@ RSpec.describe FetcheableOnApi::Filterable do
 
         it 'converts range timestamps for between predicate' do
           controller.params = ActionController::Parameters.new(filter: { created_at: '1609459200,1640995200' })
-          
+
           expect(controller).to receive(:foa_string_to_datetime).with('1609459200').and_return(DateTime.new(2021, 1, 1))
           expect(controller).to receive(:foa_string_to_datetime).with('1640995200').and_return(DateTime.new(2022, 1, 1))
-          
-          result = controller.send(:apply_filters, collection)
+
+          controller.send(:apply_filters, collection)
           expect(collection.where_conditions).not_to be_empty
         end
 
         it 'converts multiple ranges for between predicate' do
-          controller.params = ActionController::Parameters.new(filter: { created_at: ['1609459200,1640995200', '1672531200,1704067200'] })
-          
+          controller.params = ActionController::Parameters.new(filter: { created_at: ['1609459200,1640995200',
+                                                                                      '1672531200,1704067200'] })
+
           expect(controller).to receive(:foa_string_to_datetime).exactly(4).times.and_return(DateTime.new(2021, 1, 1))
-          
-          result = controller.send(:apply_filters, collection)
+
+          controller.send(:apply_filters, collection)
           expect(collection.where_conditions).not_to be_empty
         end
       end
@@ -711,10 +712,10 @@ RSpec.describe FetcheableOnApi::Filterable do
 
       it 'does not convert string values' do
         controller.params = ActionController::Parameters.new(filter: { name: 'john' })
-        
+
         expect(controller).not_to receive(:foa_string_to_datetime)
-        
-        result = controller.send(:apply_filters, collection)
+
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
     end
@@ -726,11 +727,11 @@ RSpec.describe FetcheableOnApi::Filterable do
       end
 
       it 'does not convert array values during filtering' do
-        controller.params = ActionController::Parameters.new(filter: { tags: ['tag1', 'tag2'] })
-        
+        controller.params = ActionController::Parameters.new(filter: { tags: %w[tag1 tag2] })
+
         expect(controller).not_to receive(:foa_string_to_datetime)
-        
-        result = controller.send(:apply_filters, collection)
+
+        controller.send(:apply_filters, collection)
         expect(collection.where_conditions).not_to be_empty
       end
     end
@@ -738,7 +739,7 @@ RSpec.describe FetcheableOnApi::Filterable do
     describe '#apply_format_conversion' do
       it 'converts string to datetime when format is :datetime' do
         expect(controller).to receive(:foa_string_to_datetime).with('1609459200').and_return(DateTime.new(2021, 1, 1))
-        
+
         result = controller.send(:apply_format_conversion, '1609459200', :datetime)
         expect(result).to be_a(DateTime)
       end
@@ -746,8 +747,8 @@ RSpec.describe FetcheableOnApi::Filterable do
       it 'converts array elements to datetime when format is :datetime' do
         expect(controller).to receive(:foa_string_to_datetime).with('1609459200').and_return(DateTime.new(2021, 1, 1))
         expect(controller).to receive(:foa_string_to_datetime).with('1640995200').and_return(DateTime.new(2022, 1, 1))
-        
-        result = controller.send(:apply_format_conversion, ['1609459200', '1640995200'], :datetime)
+
+        result = controller.send(:apply_format_conversion, %w[1609459200 1640995200], :datetime)
         expect(result).to be_an(Array)
         expect(result.length).to eq(2)
         expect(result.first).to be_a(DateTime)
@@ -759,8 +760,8 @@ RSpec.describe FetcheableOnApi::Filterable do
       end
 
       it 'returns value unchanged when format is :array' do
-        result = controller.send(:apply_format_conversion, ['value1', 'value2'], :array)
-        expect(result).to eq(['value1', 'value2'])
+        result = controller.send(:apply_format_conversion, %w[value1 value2], :array)
+        expect(result).to eq(%w[value1 value2])
       end
 
       it 'returns value unchanged when format is not recognized' do
@@ -769,8 +770,8 @@ RSpec.describe FetcheableOnApi::Filterable do
       end
 
       it 'returns non-String/non-Array datetime input unchanged (else branch)' do
-        result = controller.send(:apply_format_conversion, 12345, :datetime)
-        expect(result).to eq(12345)
+        result = controller.send(:apply_format_conversion, 12_345, :datetime)
+        expect(result).to eq(12_345)
       end
 
       it 'returns nil datetime input unchanged' do
@@ -790,7 +791,7 @@ RSpec.describe FetcheableOnApi::Filterable do
     end
 
     it 'joins on the specified association instead of the inferred table name' do
-      result = controller.send(:apply_filters, collection)
+      controller.send(:apply_filters, collection)
       expect(collection.joins_applied).to include(:custom_author)
       expect(collection.joins_applied).not_to include(:categories)
     end

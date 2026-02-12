@@ -19,18 +19,18 @@ module TestHelpers
       result = MockParams.new
       keys.each do |key|
         if key.is_a?(Hash)
-          key.each do |k, _v|
-            result[k] = self[k] if has_key?(k)
+          key.each_key do |k|
+            result[k] = self[k] if key?(k)
           end
-        else
-          result[key] = self[key] if has_key?(key)
+        elsif key?(key)
+          result[key] = self[key]
         end
       end
       result
     end
 
     def to_hash
-      Hash[self]
+      to_h
     end
 
     def dig(*keys)
@@ -42,7 +42,7 @@ module TestHelpers
     end
 
     def fetch(key, default = nil)
-      super(key, default)
+      super
     end
   end
 end

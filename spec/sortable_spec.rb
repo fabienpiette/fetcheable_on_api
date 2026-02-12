@@ -5,11 +5,12 @@ require 'spec_helper'
 # Mock classes for testing Sortable (reusing some from filterable_spec)
 class MockResponse
   attr_accessor :headers
-  
+
   def initialize
     @headers = {}
   end
 end
+
 class MockSortableController
   include FetcheableOnApi
 
@@ -130,7 +131,6 @@ class MockSortableArelTable < MockArelTable
   end
 end
 
-
 RSpec.describe FetcheableOnApi::Sortable do
   let(:controller) { MockSortableController.new }
   let(:collection) { MockSortableCollection.new }
@@ -216,7 +216,7 @@ RSpec.describe FetcheableOnApi::Sortable do
       end
 
       it 'applies ascending sort by default' do
-        result = controller.send(:apply_sort, collection)
+        controller.send(:apply_sort, collection)
         expect(collection.order_applied).to be_an(Array)
         expect(collection.order_applied.first).to be_a(MockSortOrder)
         expect(collection.order_applied.first.direction).to eq(:asc)
@@ -230,7 +230,7 @@ RSpec.describe FetcheableOnApi::Sortable do
       end
 
       it 'applies descending sort' do
-        result = controller.send(:apply_sort, collection)
+        controller.send(:apply_sort, collection)
         expect(collection.order_applied.first.direction).to eq(:desc)
       end
     end
@@ -242,7 +242,7 @@ RSpec.describe FetcheableOnApi::Sortable do
       end
 
       it 'applies multiple sorts in order' do
-        result = controller.send(:apply_sort, collection)
+        controller.send(:apply_sort, collection)
         expect(collection.order_applied).to be_an(Array)
         expect(collection.order_applied.length).to eq(2)
         expect(collection.order_applied.first.direction).to eq(:asc)
@@ -257,7 +257,7 @@ RSpec.describe FetcheableOnApi::Sortable do
       end
 
       it 'applies lowercase sort' do
-        result = controller.send(:apply_sort, collection)
+        controller.send(:apply_sort, collection)
         expect(collection.order_applied.first.lower).to be true
       end
     end
@@ -269,7 +269,7 @@ RSpec.describe FetcheableOnApi::Sortable do
       end
 
       it 'sorts by association field' do
-        result = controller.send(:apply_sort, collection)
+        controller.send(:apply_sort, collection)
         expect(collection.order_applied).not_to be_empty
       end
     end
@@ -280,7 +280,7 @@ RSpec.describe FetcheableOnApi::Sortable do
       end
 
       it 'ignores unconfigured sort fields' do
-        result = controller.send(:apply_sort, collection)
+        controller.send(:apply_sort, collection)
         expect(collection.order_applied).to be_empty
       end
     end
@@ -428,20 +428,20 @@ RSpec.describe FetcheableOnApi::Sortable do
 
     it 'handles empty sort parameter' do
       controller.params = ActionController::Parameters.new(sort: '')
-      result = controller.send(:apply_sort, collection)
+      controller.send(:apply_sort, collection)
       expect(collection.order_applied).to be_empty
     end
 
     it 'handles sort parameter with only commas' do
       controller.params = ActionController::Parameters.new(sort: ',,,')
-      result = controller.send(:apply_sort, collection)
+      controller.send(:apply_sort, collection)
       expect(collection.order_applied).to be_an(Array)
     end
 
     it 'handles sort parameter with mixed valid and invalid fields' do
       MockSortableController.sort_by :name
       controller.params = ActionController::Parameters.new(sort: 'name,invalid_field')
-      result = controller.send(:apply_sort, collection)
+      controller.send(:apply_sort, collection)
       expect(collection.order_applied).to be_an(Array)
       expect(collection.order_applied.length).to eq(1)
     end
@@ -457,7 +457,7 @@ RSpec.describe FetcheableOnApi::Sortable do
 
     it 'works with different collection classes' do
       controller.params = ActionController::Parameters.new(sort: 'name')
-      result = controller.send(:apply_sort, custom_collection)
+      controller.send(:apply_sort, custom_collection)
       expect(custom_collection.order_applied).not_to be_empty
     end
   end
