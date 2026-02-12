@@ -523,6 +523,68 @@ RSpec.describe FetcheableOnApi::Filterable do
         expect(keys).to include(date_range: [])
       end
     end
+
+    context 'with :in predicate without :array format' do
+      before do
+        MockController.filters_configuration = {}
+        MockController.filter_by :category_id, with: :in
+      end
+
+      it 'returns plain key (no hash format)' do
+        keys = controller.send(:valid_keys)
+        expect(keys).to include(:category_id)
+        expect(keys).not_to include(category_id: [])
+      end
+    end
+
+    context 'with :in predicate with format: :array' do
+      before do
+        MockController.filters_configuration = {}
+        MockController.filter_by :category_id, with: :in, format: :array
+      end
+
+      it 'returns hash format for array' do
+        keys = controller.send(:valid_keys)
+        expect(keys).to include(category_id: [])
+      end
+    end
+
+    context 'with :not_between predicate' do
+      before do
+        MockController.filters_configuration = {}
+        MockController.filter_by :date_range, with: :not_between
+      end
+
+      it 'returns plain key without array format' do
+        keys = controller.send(:valid_keys)
+        expect(keys).to include(:date_range)
+      end
+    end
+
+    context 'with lambda predicate' do
+      before do
+        MockController.filters_configuration = {}
+        MockController.filter_by :custom, with: ->(_c, v) { v }
+      end
+
+      it 'returns plain key (lambda skips array conversion)' do
+        keys = controller.send(:valid_keys)
+        expect(keys).to include(:custom)
+        expect(keys).not_to include(custom: [])
+      end
+    end
+
+    context 'with PREDICATES_WITH_ARRAY outside between/in group (e.g., :eq_any)' do
+      before do
+        MockController.filters_configuration = {}
+        MockController.filter_by :tags, with: :eq_any
+      end
+
+      it 'returns hash format for array predicates' do
+        keys = controller.send(:valid_keys)
+        expect(keys).to include(tags: [])
+      end
+    end
   end
 
   describe 'PREDICATES_WITH_ARRAY constant' do
