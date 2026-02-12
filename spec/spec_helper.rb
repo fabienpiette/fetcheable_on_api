@@ -1,3 +1,10 @@
+require 'simplecov'
+SimpleCov.start do
+  add_filter '/spec/'
+  add_filter '/gemfiles/'
+  enable_coverage :branch
+end
+
 require 'bundler/setup'
 require 'fetcheable_on_api'
 require 'active_support'
