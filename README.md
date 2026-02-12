@@ -58,7 +58,18 @@ GET /users?filter[status]=active&sort=-created_at&page[number]=1&page[size]=10
 
 ## Install
 
-**Prerequisites:** Ruby, Rails with ActiveSupport 4.1+
+**Prerequisites:** Ruby >= 2.7, Rails >= 5.2 (ActiveSupport >= 5.2, < 9)
+
+### Compatibility
+
+| Ruby  | Rails 5.2 | Rails 7.0 | Rails 7.1 | Rails 7.2 | Rails 8.0 |
+|-------|-----------|-----------|-----------|-----------|-----------|
+| 2.7   | ✓         | ✓         | ✓         |           |           |
+| 3.0   | ✓         | ✓         | ✓         |           |           |
+| 3.1   |           | ✓         | ✓         | ✓         |           |
+| 3.2   |           | ✓         | ✓         | ✓         | ✓         |
+| 3.3   |           |           | ✓         | ✓         | ✓         |
+| 3.4   |           |           |           |           | ✓         |
 
 ### Bundler (recommended)
 
